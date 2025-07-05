@@ -1,4 +1,6 @@
-﻿namespace CarInsuranceBot.Application.Common.Interfaces
+﻿using CarInsuranceBot.Domain.Entities;
+
+namespace CarInsuranceBot.Application.Common.Interfaces
 {
     public interface IUnitOfWork
     {
@@ -7,7 +9,10 @@
         IDocumentRepository Documents { get; }
         IExtractedFieldRepository ExtractedFields { get; }   // new
         IPolicyRepository Policies { get; }
+        IQueryable<ErrorLog> Errors { get; }
 
+        IQueryable<User> UsersQuery { get; }
+        IQueryable<Policy> PoliciesQuery { get; }
         Task<int> SaveChangesAsync(CancellationToken ct = default);
     }
 }

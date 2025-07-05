@@ -5,4 +5,6 @@ public interface IExtractedFieldRepository
 {
     void Add(ExtractedField field);
     Task<string> FirstVinAsync(Guid userId, CancellationToken ct);
+    Task RemoveByUserAsync(Guid userId, CancellationToken ct);
+
 }

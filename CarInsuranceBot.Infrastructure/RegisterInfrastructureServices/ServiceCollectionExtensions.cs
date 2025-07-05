@@ -1,5 +1,7 @@
 ﻿
 
+using CarInsuranceBot.Domain.Shared;
+
 namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
 {
@@ -33,6 +35,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IOpenAIService, OpenAIService>();
         services.AddScoped<IMindeeService, MindeeService>();
+        services.AddSingleton<IOcrSimulationSwitch, OcrSimulationSwitch>();
 
         // 4. Persistence
         services.AddScoped<IUnitOfWork, UnitOfWork>();

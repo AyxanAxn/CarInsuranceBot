@@ -1,4 +1,6 @@
-﻿namespace CarInsuranceBot.Infrastructure.Persistence
+﻿using CarInsuranceBot.Domain.Entities.Events;
+
+namespace CarInsuranceBot.Infrastructure.Persistence
 {
     public class UnitOfWork(ApplicationDbContext db) : IUnitOfWork
     {
@@ -8,6 +10,9 @@
         public IDocumentRepository Documents => new DocumentRepository(_db);
         public IExtractedFieldRepository ExtractedFields => new ExtractedFieldRepository(_db);
         public IPolicyRepository Policies => new PolicyRepository(_db);
+        public IQueryable<ErrorLog> Errors => _db.Errors;
+        public IQueryable<User> UsersQuery => _db.Users;
+        public IQueryable<Policy> PoliciesQuery => _db.Policies;
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default)
             => _db.SaveChangesAsync(ct);

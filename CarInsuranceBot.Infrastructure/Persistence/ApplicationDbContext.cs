@@ -18,7 +18,11 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(b);
 
-        // pull in all IEntityTypeConfiguration<T> in this assembly
         b.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        b.Entity<Document>()
+        .HasIndex(d => new { d.UserId, d.ContentHash })
+        .IsUnique()
+        .HasFilter("[ContentHash] IS NOT NULL");
     }
 }

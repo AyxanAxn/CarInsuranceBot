@@ -1,11 +1,25 @@
 ﻿namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
 
-public class DocumentRepository : IDocumentRepository
+public class DocumentRepository(ApplicationDbContext db) : IDocumentRepository
 {
-    private readonly ApplicationDbContext _db;
-    public DocumentRepository(ApplicationDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db = db;
 
     public void Add(Document doc) => _db.Documents.Add(doc);
     public Task<Document?> GetAsync(Guid id, CancellationToken ct) =>
-        _db.Documents.FindAsync(new object?[] { id }, ct).AsTask();
+        _db.Documents.FindAsync([id], ct).AsTask();
+
+    public async Task<bool> ExistsHashAsync(Guid userId, string hash, CancellationToken ct) =>
+        await _db.Documents.AnyAsync(d => d.UserId == userId && d.ContentHash == hash, ct);
+
+    public async Task RemoveRangeByUserStageAsync(Guid userId,
+                                              RegistrationStage stage,
+                                              CancellationToken ct)
+    {
+        var docs = await _db.Documents
+                            .Where(d => d.UserId == userId &&
+                                        d.User.Stage == stage)
+                            .ToListAsync(ct);
+
+        _db.Documents.RemoveRange(docs);
+    }
 }

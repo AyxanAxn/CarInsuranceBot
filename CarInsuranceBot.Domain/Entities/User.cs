@@ -7,7 +7,7 @@
         public string LastName { get; set; } = "";
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
         public string FullName => $"{FirstName} {LastName}".Trim();
-
+        public int UploadAttempts { get; set; }
         // navigation
         public List<Document> Documents { get; set; } = [];
         public List<Policy> Policies { get; set; } = [];

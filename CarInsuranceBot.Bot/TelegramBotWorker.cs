@@ -1,13 +1,19 @@
-﻿namespace CarInsuranceBot.Bot;
+﻿using CarInsuranceBot.Application.Admin;
+using CarInsuranceBot.Domain.Options;
+using Microsoft.Extensions.Options;
+
+namespace CarInsuranceBot.Bot;
 
 public class TelegramBotWorker(
     ITelegramBotClient bot,
     IServiceProvider sp,
-    ILogger<TelegramBotWorker> log) : BackgroundService
+    ILogger<TelegramBotWorker> log,
+    IOptions<AdminOptions> adminOpts) : BackgroundService
 {
     private readonly ITelegramBotClient _bot = bot;
     private readonly IServiceProvider _sp = sp;
     private readonly ILogger<TelegramBotWorker> _log = log;
+    private readonly long[] _admins = adminOpts.Value.TelegramAdminIds;
 
     private static readonly ReplyKeyboardMarkup MainMenu = new(new[]
     {
@@ -21,12 +27,12 @@ public class TelegramBotWorker(
     // --------------------------------------------------------------------
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        await _bot.SetMyCommands(new[]
-        {
+        await _bot.SetMyCommands(
+        [
             new BotCommand { Command = "start", Description = "Start the insurance process" },
             new BotCommand { Command = "cancel", Description = "Cancel and restart the flow" },
             new BotCommand { Command = "resendpolicy", Description = "Resend your last issued policy" }
-        });
+        ]);
 
         _bot.StartReceiving(HandleUpdateAsync, HandleErrorAsync,
             new ReceiverOptions { AllowedUpdates = Array.Empty<UpdateType>() },
@@ -98,6 +104,48 @@ public class TelegramBotWorker(
                         break;
                     }
 
+                case "retry" when user?.Stage == RegistrationStage.WaitingForReview:
+                    {
+                        // 1. Delete previous docs for this user (in review stage).
+                        await uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForReview, ct);
+                        await uow.ExtractedFields.RemoveByUserAsync(user.Id, ct);
+
+                        // 2. Reset counters & stage.
+                        user.Stage = RegistrationStage.WaitingForPassport;   // start from the top
+                        user.UploadAttempts = 0;
+
+                        await uow.SaveChangesAsync(ct);
+
+                        await _bot.SendMessage(chatId,
+                            "Let's try again. Please upload your *passport* photo.",
+                            parseMode: ParseMode.Markdown,
+                            cancellationToken: ct,
+                            replyMarkup: MainMenu);
+                        break;
+                    }
+
+                // ---- Admin only --------------------------------------------------
+                case "/stats" when _admins.Contains(chatId):
+                    {
+                        var reply = await mediator.Send(new StatsQuery(chatId), ct);
+                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                        break;
+                    }
+                case "/faillogs" when _admins.Contains(chatId):
+                    {
+                        var reply = await mediator.Send(new FailLogsQuery(chatId), ct);
+                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                        break;
+                    }
+                case var cmd when cmd.StartsWith("/simulateocr") && _admins.Contains(chatId):
+                    {
+                        bool enable = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                         .ElementAtOrDefault(1)?
+                                         .Equals("on", StringComparison.InvariantCultureIgnoreCase) == true;
+                        var reply = await mediator.Send(new ToggleOcrSimulationCommand(chatId, enable), ct);
+                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                        break;
+                    }
 
                 default:
                     {

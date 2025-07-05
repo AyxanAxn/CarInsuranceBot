@@ -30,9 +30,11 @@ public class GeneratePolicyCommandHandler : IRequestHandler<GeneratePolicyComman
         _uow.Policies.Add(new Policy
         {
             UserId = user.Id,
+            PolicyNumber = Guid.NewGuid().ToString("N")[..10].ToUpper(),
+            Status = PolicyStatus.Issued,
             PdfPath = path,
-            ExpiresUtc = DateTime.UtcNow.AddDays(7),
-            Status = PolicyStatus.Issued
+            IssuedUtc = DateTime.UtcNow,
+            ExpiresUtc = DateTime.UtcNow.AddDays(7)
         });
         user.Stage = RegistrationStage.Finished;
         await _uow.SaveChangesAsync(ct);

@@ -2,10 +2,10 @@
 using CarInsuranceBot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-public class PolicyRepository : IPolicyRepository
+public class PolicyRepository(ApplicationDbContext db) : IPolicyRepository
 {
-    private readonly ApplicationDbContext _db;
-    public PolicyRepository(ApplicationDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db = db;
+
     public async Task<Policy?> GetLatestByUserAsync(long chatId, CancellationToken ct) =>
     await _db.Policies
         .Where(p => p.User.TelegramUserId == chatId)

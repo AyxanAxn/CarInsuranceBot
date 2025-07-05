@@ -1,9 +1,8 @@
 ﻿namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
 
-public class ExtractedFieldRepository : IExtractedFieldRepository
+public class ExtractedFieldRepository(ApplicationDbContext db) : IExtractedFieldRepository
 {
-    private readonly ApplicationDbContext _db;
-    public ExtractedFieldRepository(ApplicationDbContext db) => _db = db;
+    private readonly ApplicationDbContext _db = db;
 
     public void Add(ExtractedField field) => _db.ExtractedFields.Add(field);
 
@@ -17,4 +16,12 @@ public class ExtractedFieldRepository : IExtractedFieldRepository
                  .OrderBy(f => f.Id)                    // oldest first → deterministic
                  .Select(f => f.FieldValue)
                  .FirstOrDefaultAsync(ct);
+
+    public async Task RemoveByUserAsync(Guid userId, CancellationToken ct)
+    {
+        var fields = await _db.ExtractedFields
+                              .Where(f => f.Document.UserId == userId)
+                              .ToListAsync(ct);
+        _db.ExtractedFields.RemoveRange(fields);
+    }
 }

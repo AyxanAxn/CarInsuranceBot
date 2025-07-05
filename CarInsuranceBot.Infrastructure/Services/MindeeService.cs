@@ -1,4 +1,7 @@
-﻿namespace CarInsuranceBot.Infrastructure.OCR;
+﻿using CarInsuranceBot.Domain.Shared;
+using System.Diagnostics;
+
+namespace CarInsuranceBot.Infrastructure.OCR;
 
 public class MindeeService : IMindeeService
 {
@@ -7,9 +10,11 @@ public class MindeeService : IMindeeService
     private readonly ILogger<MindeeService> _log;
     private readonly string? _driverRegOptions;
     private readonly string? _vehiclePassOptions;
+    private IOcrSimulationSwitch _switchSvc ;
     public MindeeService(IOptions<MindeeOptions> opts,
                          IOptions<MindeeDriverRegOptions> driverRegOptions,
                          IOptions<MindeeVehiclePassportOptions> vehiclePassOptions,
+                         IOcrSimulationSwitch switchSvc,
                          ILogger<MindeeService> log)
     {
         _log = log;
@@ -19,6 +24,7 @@ public class MindeeService : IMindeeService
         _vehiclePassOptions = vehiclePassOptions.Value.ModelId?.Trim();
         _log.LogInformation("MindeeService initialized. SimulationMode={Mode}",
                             _simulationMode);
+        _switchSvc = switchSvc;
 
         if (!_simulationMode)
             _client = new MindeeClientV2(apiKey);
