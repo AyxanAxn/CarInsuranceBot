@@ -1,5 +1,5 @@
 ﻿using CarInsuranceBot.Application.Admin;
-using CarInsuranceBot.Domain.Options;
+using CarInsuranceBot.Infrastructure.Options;
 using Microsoft.Extensions.Options;
 
 namespace CarInsuranceBot.Bot;

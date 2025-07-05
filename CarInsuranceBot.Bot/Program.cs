@@ -1,4 +1,5 @@
-﻿internal class Program
+﻿
+internal class Program
 {
     private static void Main(string[] args)
     {
@@ -10,6 +11,7 @@
                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
                             optional: true, reloadOnChange: true)
                .AddEnvironmentVariables();
+
 
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(builder.Configuration)    // reads Serilog: section

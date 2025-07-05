@@ -7,8 +7,9 @@ namespace CarInsuranceBot.Application.Common.Interfaces
         // Repositories (only one for now)
         IUserRepository Users { get; }
         IDocumentRepository Documents { get; }
-        IExtractedFieldRepository ExtractedFields { get; }   // new
+        IExtractedFieldRepository ExtractedFields { get; }  
         IPolicyRepository Policies { get; }
+        IConversationRepository Conversations { get; }
         IQueryable<ErrorLog> Errors { get; }
 
         IQueryable<User> UsersQuery { get; }

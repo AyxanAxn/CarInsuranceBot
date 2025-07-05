@@ -1,6 +1,4 @@
-﻿
-
-using CarInsuranceBot.Domain.Shared;
+﻿using CarInsuranceBot.Domain.Shared;
 
 namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
@@ -10,12 +8,13 @@ public static class ServiceCollectionExtensions
         IConfiguration config)
     {
         // 1. Options binding
+        services.Configure<MindeeVehiclePassportOptions>(config.GetSection(MindeeVehiclePassportOptions.Section));
+        services.Configure<MindeeDriverRegOptions>(config.GetSection(MindeeDriverRegOptions.Section));
         services.Configure<TelegramOptions>(config.GetSection(TelegramOptions.Section));
         services.Configure<OpenAIOptions>(config.GetSection(OpenAIOptions.Section));
         services.Configure<MindeeOptions>(config.GetSection(MindeeOptions.Section));
-        services.Configure<MindeeVehiclePassportOptions>(config.GetSection(MindeeVehiclePassportOptions.Section));
-        services.Configure<MindeeDriverRegOptions>(config.GetSection(MindeeDriverRegOptions.Section));
         services.Configure<OpenAIOptions>(config.GetSection(OpenAIOptions.Section));
+        services.Configure<AdminOptions>(config.GetSection(AdminOptions.Section));
 
         // 2. EF Core
         services.AddDbContext<ApplicationDbContext>(opt =>

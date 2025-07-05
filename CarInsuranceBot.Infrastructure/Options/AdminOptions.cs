@@ -1,4 +1,4 @@
-﻿namespace CarInsuranceBot.Domain.Options;
+﻿namespace CarInsuranceBot.Infrastructure.Options;
 
 public sealed class AdminOptions
 {
