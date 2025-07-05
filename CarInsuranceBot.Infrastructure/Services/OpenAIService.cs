@@ -9,9 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace CarInsuranceBot.Infrastructure.Services;
 
-/// <summary>
-/// Wraps Google Gemini’s native “generateContent” REST endpoint.
-/// </summary>
+
 public sealed class OpenAIService : IOpenAIService
 {
     private readonly HttpClient _http;
