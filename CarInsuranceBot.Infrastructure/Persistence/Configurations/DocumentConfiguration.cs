@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using CarInsuranceBot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace CarInsuranceBot.Infrastructure.Persistence.Configurations
+﻿namespace CarInsuranceBot.Infrastructure.Persistence.Configurations
 {
     public class DocumentConfiguration : IEntityTypeConfiguration<Document>
     {

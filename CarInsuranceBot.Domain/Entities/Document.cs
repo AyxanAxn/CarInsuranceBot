@@ -1,6 +1,4 @@
 ﻿using CarInsuranceBot.Domain.Common;
-using CarInsuranceBot.Domain.Enums;
-
 namespace CarInsuranceBot.Domain.Entities
 {
     public class Document : BaseEntity

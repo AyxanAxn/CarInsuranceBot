@@ -1,8 +1,4 @@
-﻿using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
+﻿namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
 
 public class DocumentRepository : IDocumentRepository
 {

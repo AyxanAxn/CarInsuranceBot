@@ -1,7 +1,4 @@
-﻿using CarInsuranceBot.Infrastructure.Persistence.Repositories;
-using CarInsuranceBot.Application.Common.Interfaces;
-
-namespace CarInsuranceBot.Infrastructure.Persistence
+﻿namespace CarInsuranceBot.Infrastructure.Persistence
 {
     public class UnitOfWork(ApplicationDbContext db) : IUnitOfWork
     {

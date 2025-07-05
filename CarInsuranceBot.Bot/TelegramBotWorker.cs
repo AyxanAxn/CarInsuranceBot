@@ -1,15 +1,4 @@
-﻿using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Application.Commands.Upload;
-using CarInsuranceBot.Application.Commands.Start;
-using CarInsuranceBot.Domain.Enums;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
-using Telegram.Bot.Types;
-using Telegram.Bot;
-using MediatR;
-
-namespace CarInsuranceBot.Bot;
+﻿namespace CarInsuranceBot.Bot;
 
 public class TelegramBotWorker(
     ITelegramBotClient bot,
@@ -20,88 +9,147 @@ public class TelegramBotWorker(
     private readonly IServiceProvider _sp = sp;
     private readonly ILogger<TelegramBotWorker> _log = log;
 
+    private static readonly ReplyKeyboardMarkup MainMenu = new(new[]
+    {
+        new KeyboardButton[] { "/start", "/cancel", "/resendpolicy" }
+    })
+    {
+        ResizeKeyboard = true,
+        OneTimeKeyboard = false
+    };
+
+    // --------------------------------------------------------------------
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        var receiverOptions = new ReceiverOptions
+        await _bot.SetMyCommands(new[]
         {
-            AllowedUpdates = Array.Empty<UpdateType>()
-        };
+            new BotCommand { Command = "start", Description = "Start the insurance process" },
+            new BotCommand { Command = "cancel", Description = "Cancel and restart the flow" },
+            new BotCommand { Command = "resendpolicy", Description = "Resend your last issued policy" }
+        });
 
-        _bot.StartReceiving(
-            HandleUpdateAsync,   // update handler
-            HandleErrorAsync,    // error handler
-            receiverOptions,
+        _bot.StartReceiving(HandleUpdateAsync, HandleErrorAsync,
+            new ReceiverOptions { AllowedUpdates = Array.Empty<UpdateType>() },
             ct);
 
         _log.LogInformation("Telegram bot started.");
         await Task.Delay(Timeout.Infinite, ct);
     }
 
-
-    // ---- Handlers ---------------------------------------------------------
-
+    // --------------------------------------------------------------------
     private async Task HandleUpdateAsync(ITelegramBotClient _, Update update, CancellationToken ct)
     {
-        // 1️- text commands
+        // ---------- TEXT messages --------------------------------------
         if (update.Message is { Text: { } text } msgTxt)
         {
+            var chatId = msgTxt.Chat.Id;                     // ① capture once
             using var scope = _sp.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var user = await uow.Users.GetAsync(chatId, ct);   // nullable
 
-            switch (text)
+            switch (text.ToLowerInvariant())
             {
                 case "/start":
-                    var greeting = await mediator.Send(
-                        new StartCommand(msgTxt.Chat.Id, msgTxt.From?.FirstName), ct);
+                    {
+                        var greeting = await mediator.Send(
+                            new StartCommand(chatId, msgTxt.From?.FirstName), ct);
 
-                    await _bot.SendMessage(
-                        chatId: msgTxt.Chat.Id,
-                        text: greeting,
-                        parseMode: ParseMode.Markdown,
-                        cancellationToken: ct);
-                    break;
+                        await _bot.SendMessage(chatId, greeting,
+                            parseMode: ParseMode.Markdown, cancellationToken: ct,
+                            replyMarkup: MainMenu);
+                        break;
+                    }
 
-                    // TODO: /cancel, /resendpolicy
+                case "yes" when user?.Stage == RegistrationStage.WaitingForReview:
+                    {
+                        var price = await mediator.Send(new QuotePriceCommand(user.Id), ct);
+                        await _bot.SendMessage(chatId, price,
+                            parseMode: ParseMode.Markdown, cancellationToken: ct);
+                        break;
+                    }
+
+                case "yes" when user?.Stage == RegistrationStage.WaitingForPayment:
+                    {
+                        var done = await mediator.Send(new GeneratePolicyCommand(user.Id), ct);
+                        await _bot.SendMessage(chatId, done, cancellationToken: ct);
+                        break;
+                    }
+
+                case "no" when user?.Stage == RegistrationStage.WaitingForPayment:
+                    {
+                        await _bot.SendMessage(chatId,
+                            "The price is fixed at 100 USD. Type *yes* whenever you're ready.",
+                            parseMode: ParseMode.Markdown, cancellationToken: ct);
+                        break;
+                    }
+
+                case "/resendpolicy":
+                    {
+                        var reply = await mediator.Send(new ResendPolicyCommand(chatId), ct);
+                        // The handler already sends the PDF; we just send the textual reply.
+                        await _bot.SendMessage(chatId, reply, cancellationToken: ct);
+                        break;
+                    }
+                case "/cancel":
+                    {
+                        var reply = await mediator.Send(new CancelCommand(chatId), ct);
+                        await _bot.SendMessage(chatId, reply, cancellationToken: ct, replyMarkup: MainMenu);
+                        break;
+                    }
+
+
+                default:
+                    {
+                        string aiReply;
+                        try
+                        {
+                            aiReply = await mediator.Send(new ChatQuery(chatId, text), ct);
+                        }
+                        catch
+                        {
+                            aiReply = "🤖 Sorry, I'm a bit overloaded. Please try again in a minute.";
+                        }
+                        await _bot.SendMessage(chatId, aiReply, cancellationToken: ct);
+                        break;
+                    }
+
             }
 
-            return;   // ⬅ we’ve handled this update
+            return; // handled text message
         }
 
-        // 2️- photo uploads 
+        // ---------- PHOTO uploads --------------------------------------
         if (update.Message?.Photo?.Any() == true)
         {
             var chatId = update.Message.Chat.Id;
-            var photo = update.Message.Photo[^1];            // highest-res variant
+            var photo = update.Message.Photo[^1];                 // highest-res
             var tgFile = await _bot.GetFile(photo.FileId, ct);
 
             using var scope = _sp.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-            // Determine what we expect based on user.Stage
             var user = await uow.Users.GetAsync(chatId, ct);
             bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
 
             var reply = await mediator.Send(
                 new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
 
-            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
-            return;
+            await _bot.SendMessage(chatId, reply,
+                parseMode: ParseMode.Markdown, cancellationToken: ct);
         }
-
     }
 
-
-    private Task HandleErrorAsync(ITelegramBotClient _, Exception ex, CancellationToken ct)
+    // --------------------------------------------------------------------
+    private Task HandleErrorAsync(ITelegramBotClient _, Exception ex, CancellationToken __)
     {
         string msg = ex switch
         {
             ApiRequestException apiEx => $"Telegram API Error:\n[{apiEx.ErrorCode}] {apiEx.Message}",
             _ => ex.ToString()
         };
-
         _log.LogError(msg);
         return Task.CompletedTask;
     }
-
 }

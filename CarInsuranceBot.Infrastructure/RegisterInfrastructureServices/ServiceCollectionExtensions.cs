@@ -1,15 +1,4 @@
-﻿using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Infrastructure.Persistence;
-using CarInsuranceBot.Infrastructure.FileStorage;
-using Microsoft.Extensions.DependencyInjection;
-using CarInsuranceBot.Infrastructure.Options;
-using CarInsuranceBot.Infrastructure.OCR;
-using Microsoft.Extensions.Configuration;
-using CarInsuranceBot.Application.OCR;
-using CarInsuranceBot.Application.AI;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Telegram.Bot;
+﻿
 
 namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
@@ -24,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.Configure<MindeeOptions>(config.GetSection(MindeeOptions.Section));
         services.Configure<MindeeVehiclePassportOptions>(config.GetSection(MindeeVehiclePassportOptions.Section));
         services.Configure<MindeeDriverRegOptions>(config.GetSection(MindeeDriverRegOptions.Section));
+        services.Configure<OpenAIOptions>(config.GetSection(OpenAIOptions.Section));
 
         // 2. EF Core
         services.AddDbContext<ApplicationDbContext>(opt =>
@@ -33,6 +23,8 @@ public static class ServiceCollectionExtensions
 
 
         // 3. External services
+        services.AddHttpClient("openai");
+        services.AddScoped<IOpenAIService, OpenAIService>();
         services.AddSingleton<ITelegramBotClient>(sp =>
         {
             var token = sp.GetRequiredService<IOptions<TelegramOptions>>().Value.BotToken;
@@ -44,6 +36,7 @@ public static class ServiceCollectionExtensions
 
         // 4. Persistence
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IPolicyRepository, PolicyRepository>();
 
         return services;
     }

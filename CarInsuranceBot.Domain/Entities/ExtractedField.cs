@@ -1,6 +1,4 @@
-﻿using CarInsuranceBot.Domain.Common;
-
-namespace CarInsuranceBot.Domain.Entities
+﻿namespace CarInsuranceBot.Domain.Entities
 {
 
     public class ExtractedField : BaseEntity

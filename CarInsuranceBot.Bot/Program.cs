@@ -1,13 +1,9 @@
-﻿using CarInsuranceBot.Bot;
-using CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
-using CarInsuranceBot.Application.RegisterApplicationServices;
-using Serilog;
-
-internal class Program
+﻿internal class Program
 {
     private static void Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
+        QuestPDF.Settings.License = LicenseType.Community;
 
         builder.Configuration
                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -22,7 +18,6 @@ internal class Program
             .CreateLogger();
 
         builder.Services.AddLogging(lb => lb.ClearProviders().AddSerilog());
-
         // DI – application & infrastructure layers
         builder.Services.AddApplicationServices();
         builder.Services.AddInfrastructureServices(builder.Configuration);

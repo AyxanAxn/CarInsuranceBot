@@ -1,8 +1,4 @@
-﻿using CarInsuranceBot.Application.Common.Interfaces;
-using TelegramFile = Telegram.Bot.Types.TGFile;
-using Telegram.Bot;
-
-namespace CarInsuranceBot.Infrastructure.FileStorage;
+﻿namespace CarInsuranceBot.Infrastructure.FileStorage;
 
 public sealed class DiskFileStore : IFileStore
 {

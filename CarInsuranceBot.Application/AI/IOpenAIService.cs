@@ -1,9 +1,5 @@
-﻿using CarInsuranceBot.Domain.Entities;
-
-namespace CarInsuranceBot.Application.AI
+﻿namespace CarInsuranceBot.Application.AI;
+public interface IOpenAIService
 {
-    public interface IOpenAIService
-    {
-        Task<string> GeneratePolicyIntroAsync(User user, CancellationToken ct);
-    }
+    Task<string> AskAsync(long chatId, string prompt, CancellationToken ct);
 }

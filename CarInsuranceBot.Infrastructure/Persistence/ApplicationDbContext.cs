@@ -1,7 +1,4 @@
-﻿using CarInsuranceBot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace CarInsuranceBot.Infrastructure.Persistence;
+﻿namespace CarInsuranceBot.Infrastructure.Persistence;
 
 public class ApplicationDbContext : DbContext
 {

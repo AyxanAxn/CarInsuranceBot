@@ -1,8 +1,4 @@
-﻿using CarInsuranceBot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace CarInsuranceBot.Infrastructure.Persistence.Configurations;
+﻿namespace CarInsuranceBot.Infrastructure.Persistence.Configurations;
 
 public class PolicyConfiguration : IEntityTypeConfiguration<Policy>
 {

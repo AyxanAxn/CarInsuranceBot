@@ -1,12 +1,4 @@
-﻿using CarInsuranceBot.Infrastructure.Options;
-using CarInsuranceBot.Application.OCR;
-using CarInsuranceBot.Domain.Enums;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Mindee.Input;
-using Mindee;
-
-namespace CarInsuranceBot.Infrastructure.OCR;
+﻿namespace CarInsuranceBot.Infrastructure.OCR;
 
 public class MindeeService : IMindeeService
 {
