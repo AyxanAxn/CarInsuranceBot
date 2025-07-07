@@ -10,8 +10,9 @@ namespace CarInsuranceBot.Application.Common.Interfaces
         IExtractedFieldRepository ExtractedFields { get; }  
         IPolicyRepository Policies { get; }
         IConversationRepository Conversations { get; }
-        IQueryable<ErrorLog> Errors { get; }
+        IErrorLogRepository ErrorLogs { get; }
 
+        IQueryable<ErrorLog> Errors { get; }
         IQueryable<User> UsersQuery { get; }
         IQueryable<Policy> PoliciesQuery { get; }
         Task<int> SaveChangesAsync(CancellationToken ct = default);

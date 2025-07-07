@@ -1,5 +1,5 @@
 ﻿namespace CarInsuranceBot.Application.AI;
-public interface IOpenAIService
+public interface IGeminiService
 {
     Task<string> AskAsync(long chatId, string prompt, CancellationToken ct);
 }

@@ -45,147 +45,170 @@ public class TelegramBotWorker(
     // --------------------------------------------------------------------
     private async Task HandleUpdateAsync(ITelegramBotClient _, Update update, CancellationToken ct)
     {
-        // ---------- TEXT messages --------------------------------------
-        if (update.Message is { Text: { } text } msgTxt)
+        try
         {
-            var chatId = msgTxt.Chat.Id;                     // ① capture once
-            using var scope = _sp.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var user = await uow.Users.GetAsync(chatId, ct);   // nullable
-
-            switch (text.ToLowerInvariant())
+            // ---------- TEXT messages --------------------------------------
+            if (update.Message is { Text: { } text } msgTxt)
             {
-                case "/start":
-                    {
-                        var greeting = await mediator.Send(
-                            new StartCommand(chatId, msgTxt.From?.FirstName), ct);
+                var chatId = msgTxt.Chat.Id;                     // ① capture once
+                using var scope = _sp.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var user = await uow.Users.GetAsync(chatId, ct);   // nullable
 
-                        await _bot.SendMessage(chatId, greeting,
-                            parseMode: ParseMode.Markdown, cancellationToken: ct,
-                            replyMarkup: MainMenu);
-                        break;
-                    }
-
-                case "yes" when user?.Stage == RegistrationStage.WaitingForReview:
-                    {
-                        var price = await mediator.Send(new QuotePriceCommand(user.Id), ct);
-                        await _bot.SendMessage(chatId, price,
-                            parseMode: ParseMode.Markdown, cancellationToken: ct);
-                        break;
-                    }
-
-                case "yes" when user?.Stage == RegistrationStage.WaitingForPayment:
-                    {
-                        var done = await mediator.Send(new GeneratePolicyCommand(user.Id), ct);
-                        await _bot.SendMessage(chatId, done, cancellationToken: ct);
-                        break;
-                    }
-
-                case "no" when user?.Stage == RegistrationStage.WaitingForPayment:
-                    {
-                        await _bot.SendMessage(chatId,
-                            "The price is fixed at 100 USD. Type *yes* whenever you're ready.",
-                            parseMode: ParseMode.Markdown, cancellationToken: ct);
-                        break;
-                    }
-
-                case "/resendpolicy":
-                    {
-                        var reply = await mediator.Send(new ResendPolicyCommand(chatId), ct);
-                        // The handler already sends the PDF; we just send the textual reply.
-                        await _bot.SendMessage(chatId, reply, cancellationToken: ct);
-                        break;
-                    }
-                case "/cancel":
-                    {
-                        var reply = await mediator.Send(new CancelCommand(chatId), ct);
-                        await _bot.SendMessage(chatId, reply, cancellationToken: ct, replyMarkup: MainMenu);
-                        break;
-                    }
-
-                case "retry" when user?.Stage == RegistrationStage.WaitingForReview:
-                    {
-                        // 1. Delete previous docs for this user (in review stage).
-                        await uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForReview, ct);
-                        await uow.ExtractedFields.RemoveByUserAsync(user.Id, ct);
-
-                        // 2. Reset counters & stage.
-                        user.Stage = RegistrationStage.WaitingForPassport;   // start from the top
-                        user.UploadAttempts = 0;
-
-                        await uow.SaveChangesAsync(ct);
-
-                        await _bot.SendMessage(chatId,
-                            "Let's try again. Please upload your *passport* photo.",
-                            parseMode: ParseMode.Markdown,
-                            cancellationToken: ct,
-                            replyMarkup: MainMenu);
-                        break;
-                    }
-
-                // ---- Admin only --------------------------------------------------
-                case "/stats" when _admins.Contains(chatId):
-                    {
-                        var reply = await mediator.Send(new StatsQuery(chatId), ct);
-                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
-                        break;
-                    }
-                case "/faillogs" when _admins.Contains(chatId):
-                    {
-                        var reply = await mediator.Send(new FailLogsQuery(chatId), ct);
-                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
-                        break;
-                    }
-                case var cmd when cmd.StartsWith("/simulateocr") && _admins.Contains(chatId):
-                    {
-                        bool enable = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                         .ElementAtOrDefault(1)?
-                                         .Equals("on", StringComparison.InvariantCultureIgnoreCase) == true;
-                        var reply = await mediator.Send(new ToggleOcrSimulationCommand(chatId, enable), ct);
-                        await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
-                        break;
-                    }
-
-                default:
-                    {
-                        string aiReply;
-                        try
+                switch (text.ToLowerInvariant())
+                {
+                    case "/start":
                         {
-                            aiReply = await mediator.Send(new ChatQuery(chatId, text), ct);
-                        }
-                        catch
-                        {
-                            aiReply = "🤖 Sorry, I'm a bit overloaded. Please try again in a minute.";
-                        }
-                        await _bot.SendMessage(chatId, aiReply, cancellationToken: ct);
-                        break;
-                    }
+                            var greeting = await mediator.Send(
+                                new StartCommand(chatId, msgTxt.From?.FirstName), ct);
 
+                            await _bot.SendMessage(chatId, greeting,
+                                parseMode: ParseMode.Markdown, cancellationToken: ct,
+                                replyMarkup: MainMenu);
+                            break;
+                        }
+
+                    case "yes" when user?.Stage == RegistrationStage.WaitingForReview:
+                        {
+                            var price = await mediator.Send(new QuotePriceCommand(user.Id), ct);
+                            await _bot.SendMessage(chatId, price,
+                                parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+
+                    case "yes" when user?.Stage == RegistrationStage.WaitingForPayment:
+                        {
+                            var done = await mediator.Send(new GeneratePolicyCommand(user.Id), ct);
+                            await _bot.SendMessage(chatId, done, cancellationToken: ct);
+                            break;
+                        }
+
+                    case "no" when user?.Stage == RegistrationStage.WaitingForPayment:
+                        {
+                            await _bot.SendMessage(chatId,
+                                "The price is fixed at 100 USD. Type *yes* whenever you're ready.",
+                                parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+
+                    case "/resendpolicy":
+                        {
+                            var reply = await mediator.Send(new ResendPolicyCommand(chatId), ct);
+                            // The handler already sends the PDF; we just send the textual reply.
+                            await _bot.SendMessage(chatId, reply, cancellationToken: ct);
+                            break;
+                        }
+                    case "/cancel":
+                        {
+                            var reply = await mediator.Send(new CancelCommand(chatId), ct);
+                            await _bot.SendMessage(chatId, reply, cancellationToken: ct, replyMarkup: MainMenu);
+                            break;
+                        }
+
+                    case "retry" when user?.Stage == RegistrationStage.WaitingForReview:
+                        {
+                            // 1. Delete previous docs for this user (in review stage).
+                            await uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForReview, ct);
+                            await uow.ExtractedFields.RemoveByUserAsync(user.Id, ct);
+
+                            // 2. Reset counters & stage.
+                            user.Stage = RegistrationStage.WaitingForPassport;   // start from the top
+                            user.UploadAttempts = 0;
+
+                            await uow.SaveChangesAsync(ct);
+
+                            await _bot.SendMessage(chatId,
+                                "Let's try again. Please upload your *passport* photo.",
+                                parseMode: ParseMode.Markdown,
+                                cancellationToken: ct,
+                                replyMarkup: MainMenu);
+                            break;
+                        }
+
+                    // ---- Admin only --------------------------------------------------
+                    #region Admin
+                    case "/stats" when _admins.Contains(chatId):
+                        {
+                            var reply = await mediator.Send(new StatsQuery(chatId), ct);
+                            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+                    case "/faillogs" when _admins.Contains(chatId):
+                        {
+                            var reply = await mediator.Send(new FailLogsQuery(chatId), ct);
+                            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+                    case var cmd when cmd.StartsWith("/simulateocr") && _admins.Contains(chatId):
+                        {
+                            bool enable = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                             .ElementAtOrDefault(1)?
+                                             .Equals("on", StringComparison.InvariantCultureIgnoreCase) == true;
+                            var reply = await mediator.Send(new ToggleOcrSimulationCommand(chatId, enable), ct);
+                            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+                    #endregion
+                    default:
+                        {
+                            string aiReply;
+                            try
+                            {
+                                aiReply = await mediator.Send(new ChatQuery(chatId, text), ct);
+                            }
+                            catch
+                            {
+                                aiReply = "🤖 Sorry, I'm a bit overloaded. Please try again in a minute.";
+                                throw;
+                            }
+                            await _bot.SendMessage(chatId, aiReply, cancellationToken: ct);
+                            break;
+                        }
+
+                }
+
+                return; // handled text message
             }
 
-            return; // handled text message
+            // ---------- PHOTO uploads --------------------------------------
+            if (update.Message?.Photo?.Any() == true)
+            {
+                var chatId = update.Message.Chat.Id;
+                var photo = update.Message.Photo[^1];                 // highest-res
+                var tgFile = await _bot.GetFile(photo.FileId, ct);
+
+                using var scope = _sp.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+                var user = await uow.Users.GetAsync(chatId, ct);
+                bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
+
+                var reply = await mediator.Send(
+                    new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
+
+                await _bot.SendMessage(chatId, reply,
+                    parseMode: ParseMode.Markdown, cancellationToken: ct);
+            }
         }
-
-        // ---------- PHOTO uploads --------------------------------------
-        if (update.Message?.Photo?.Any() == true)
+        catch (Exception ex)
         {
-            var chatId = update.Message.Chat.Id;
-            var photo = update.Message.Photo[^1];                 // highest-res
-            var tgFile = await _bot.GetFile(photo.FileId, ct);
-
             using var scope = _sp.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-
-            var user = await uow.Users.GetAsync(chatId, ct);
-            bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
-
-            var reply = await mediator.Send(
-                new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
-
-            await _bot.SendMessage(chatId, reply,
-                parseMode: ParseMode.Markdown, cancellationToken: ct);
+            uow.ErrorLogs.Add(new CarInsuranceBot.Domain.Entities.ErrorLog
+            {
+                Message = ex.Message,
+                StackTrace = ex.ToString(),
+                LoggedUtc = DateTime.UtcNow
+            });
+            await uow.SaveChangesAsync(ct);
+            _log.LogError(ex, "Exception caught in HandleUpdateAsync and logged to ErrorLog table.");
+            // Optionally, notify the user
+            if (update.Message != null)
+            {
+                await _bot.SendMessage(update.Message.Chat.Id, "An error occurred. The team has been notified.", cancellationToken: ct);
+            }
         }
     }
 

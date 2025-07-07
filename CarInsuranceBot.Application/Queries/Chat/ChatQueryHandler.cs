@@ -1,18 +1,15 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using CarInsuranceBot.Application.AI;
+﻿using CarInsuranceBot.Application.AI;
 using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Domain.Entities;
 using MediatR;
 
 namespace CarInsuranceBot.Application.Queries.Chat;
 
 public class ChatQueryHandler : IRequestHandler<ChatQuery, string>
 {
-    private readonly IOpenAIService _ai;
+    private readonly IGeminiService _ai;
     private readonly IUnitOfWork _uow;
 
-    public ChatQueryHandler(IOpenAIService ai, IUnitOfWork uow)
+    public ChatQueryHandler(IGeminiService ai, IUnitOfWork uow)
     {
         _ai = ai;
         _uow = uow;

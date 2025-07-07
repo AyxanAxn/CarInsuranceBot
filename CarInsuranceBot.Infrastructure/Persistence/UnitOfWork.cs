@@ -12,6 +12,7 @@
         public IQueryable<Policy> PoliciesQuery => _db.Policies;
         public IQueryable<ErrorLog> Errors => _db.Errors;
         public IQueryable<User> UsersQuery => _db.Users;
+        public IErrorLogRepository ErrorLogs => new ErrorLogRepository(_db);
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default)
             => _db.SaveChangesAsync(ct);
