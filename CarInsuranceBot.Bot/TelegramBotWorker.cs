@@ -84,7 +84,7 @@ public class TelegramBotWorker(
                     case "no" when user?.Stage == RegistrationStage.WaitingForPayment:
                         {
                             await _bot.SendMessage(chatId,
-                                "The price is fixed at 100 USD. Type *yes* whenever you're ready.",
+                                "The price is fixed at 100 USD(test). Type *yes* whenever you're ready.",
                                 parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }

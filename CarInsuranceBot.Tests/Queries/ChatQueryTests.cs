@@ -1,4 +1,3 @@
-using CarInsuranceBot.Application.Queries.Chat;
 
 namespace CarInsuranceBot.Tests.Queries;
 

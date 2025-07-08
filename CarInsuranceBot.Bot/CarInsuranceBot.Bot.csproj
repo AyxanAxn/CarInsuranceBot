@@ -22,4 +22,10 @@
     <ProjectReference Include="..\CarInsuranceBot.Application\CarInsuranceBot.Application.csproj" />
     <ProjectReference Include="..\CarInsuranceBot.Infrastructure\CarInsuranceBot.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Settings.job">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
