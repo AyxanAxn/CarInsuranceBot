@@ -8,4 +8,5 @@ public interface IMindeeService
         Stream image,
         DocumentType docType,
         CancellationToken ct);
+    ExtractedDocument SimulateExtraction(DocumentType docType);
 }

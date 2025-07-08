@@ -1,5 +1,6 @@
-﻿using MediatR;
+﻿using CarInsuranceBot.Domain.Enums;
+using MediatR;
 
 namespace CarInsuranceBot.Application.Admin;
 
-public record ToggleOcrSimulationCommand(long ChatId, bool Enable) : IRequest<string>;
+public record ToggleOcrSimulationCommand() : IRequest<string>;

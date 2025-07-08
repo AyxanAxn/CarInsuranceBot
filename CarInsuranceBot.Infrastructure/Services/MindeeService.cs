@@ -1,5 +1,4 @@
 ﻿using CarInsuranceBot.Domain.Shared;
-using System.Diagnostics;
 
 namespace CarInsuranceBot.Infrastructure.OCR;
 
@@ -125,7 +124,7 @@ public class MindeeService : IMindeeService
     }
 
     // --------------------------------------------------------------------
-    private static ExtractedDocument SimulateExtraction(DocumentType docType)
+    public ExtractedDocument SimulateExtraction(DocumentType docType)
     {
         return docType switch
         {

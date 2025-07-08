@@ -85,7 +85,6 @@ public class UploadDocumentCommandHandler :
                 DocumentId = doc.Id,
                 FieldName = k,
                 FieldValue = v,
-                Confidence = 0.9f
             });
 
         if (cmd.IsPassport)
@@ -100,7 +99,10 @@ public class UploadDocumentCommandHandler :
 
         if (cmd.IsPassport)
         {
-            var sb = new StringBuilder("✅ Passport received! Now please send a photo of the vehicle registration certificate.");
+            var sb = new StringBuilder("✅ Passport received!\n\n*Extracted Data:*\n");
+            foreach (var (k, v) in extracted.Values)
+                sb.AppendLine($"{k}: {v}");
+            sb.AppendLine("\nNow please send a photo of the vehicle registration certificate.");
             return sb.ToString();
         }
         else

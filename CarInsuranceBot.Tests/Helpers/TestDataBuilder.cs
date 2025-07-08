@@ -51,7 +51,6 @@ public static class TestDataBuilder
             DocumentId = documentId,
             FieldName = fieldName,
             FieldValue = fieldValue,
-            Confidence = 0.9f
         };
     }
 

@@ -146,7 +146,7 @@ public class TelegramBotWorker(
                             bool enable = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                                              .ElementAtOrDefault(1)?
                                              .Equals("on", StringComparison.InvariantCultureIgnoreCase) == true;
-                            var reply = await mediator.Send(new ToggleOcrSimulationCommand(chatId, enable), ct);
+                            var reply = await mediator.Send(new ToggleOcrSimulationCommand(), ct);
                             await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }

@@ -34,7 +34,6 @@ public class ExtractAndReviewCommandHandler : IRequestHandler<ExtractAndReviewCo
                 DocumentId = doc.Id,
                 FieldName = name,
                 FieldValue = value,
-                Confidence = 0.9f
             });
         }
 

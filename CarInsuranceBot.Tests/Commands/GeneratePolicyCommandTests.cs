@@ -24,7 +24,6 @@ public class GeneratePolicyCommandTests(InMemoryFixture fx) : IClassFixture<InMe
             DocumentId = document.Id,
             FieldName = "VIN",
             FieldValue = "1ABC",
-            Confidence = 0.9f
         });
         await _db.SaveChangesAsync();
 

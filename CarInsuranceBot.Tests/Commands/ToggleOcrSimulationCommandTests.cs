@@ -1,41 +1,37 @@
-﻿namespace CarInsuranceBot.Tests.Commands;
+﻿using CarInsuranceBot.Application.Commands.Admin;
 
-public class ToggleOcrSimulationCommandTests : IClassFixture<InMemoryFixture>
+namespace CarInsuranceBot.Tests.Commands;
+
+public class ToggleOcrSimulationCommandTests
 {
-    private readonly ApplicationDbContext _db;
-    public ToggleOcrSimulationCommandTests(InMemoryFixture fx) => _db = fx.Db;
-
     [Fact]
-    public async Task Toggles_ocr_simulation_mode_on()
+    public async Task Returns_simulated_passport_and_vehicle_data()
     {
         // Arrange
-        var switchMock = new Mock<IOcrSimulationSwitch>();
-        switchMock.Setup(s => s.ForceSimulation).Returns(false);
-        
-        var handler = new ToggleOcrSimulationHandler(switchMock.Object);
+        var mindeeMock = new Mock<IMindeeService>();
+        mindeeMock.Setup(m => m.SimulateExtraction(Domain.Enums.DocumentType.Passport))
+            .Returns(new ExtractedDocument(Domain.Enums.DocumentType.Passport)
+                .Add("FullName", "John Doe")
+                .Add("PassportNumber", "P1234567")
+                .Add("Nationality", "USA"));
+
+        mindeeMock.Setup(m => m.SimulateExtraction(Domain.Enums.DocumentType.VehicleRegistration))
+            .Returns(new ExtractedDocument(Domain.Enums.DocumentType.VehicleRegistration)
+                .Add("VIN", "1HGBH41JXMN109186")
+                .Add("Make", "Hundai")
+                .Add("Model", "Santa FE")
+                .Add("Year", "2025"));
+
+        var handler = new ToggleOcrSimulationHandler(mindeeMock.Object);
 
         // Act
-        var result = await handler.Handle(new ToggleOcrSimulationCommand(ChatId: 12345, Enable: true), default);
+        var result = await handler.Handle(new ToggleOcrSimulationCommand(), default);
 
         // Assert
-        result.Should().ContainEquivalentOf("🔧 OCR simulation has been *enabled*.");
-        switchMock.VerifySet(s => s.ForceSimulation = true, Times.Once);
+        result.Should().Contain("SIMULATED OCR");
+        result.Should().Contain("Passport:");
+        result.Should().Contain("FullName: John Doe");
+        result.Should().Contain("Vehicle Registration:");
+        result.Should().Contain("VIN: 1HGBH41JXMN109186");
     }
-
-    [Fact]
-    public async Task Toggles_ocr_simulation_mode_off()
-    {
-        // Arrange
-        var switchMock = new Mock<IOcrSimulationSwitch>();
-        switchMock.Setup(s => s.ForceSimulation).Returns(true);
-        
-        var handler = new ToggleOcrSimulationHandler(switchMock.Object);
-
-        // Act
-        var result = await handler.Handle(new ToggleOcrSimulationCommand(ChatId: 12345, Enable: false), default);
-
-        // Assert
-        result.Should().Be("🔧 OCR simulation has been *disabled*.");
-        switchMock.VerifySet(s => s.ForceSimulation = false, Times.Once);
-    }
-} 
+}
