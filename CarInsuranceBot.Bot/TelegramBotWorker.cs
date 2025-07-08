@@ -35,7 +35,7 @@ public class TelegramBotWorker(
         ]);
 
         _bot.StartReceiving(HandleUpdateAsync, HandleErrorAsync,
-            new ReceiverOptions { AllowedUpdates = Array.Empty<UpdateType>() },
+            new ReceiverOptions { AllowedUpdates = [] },
             ct);
 
         _log.LogInformation("Telegram bot started.");
@@ -74,6 +74,7 @@ public class TelegramBotWorker(
                             var price = await mediator.Send(new QuotePriceCommand(user.Id), ct);
                             await _bot.SendMessage(chatId, price,
                                 parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            user.Stage = RegistrationStage.WaitingForPayment;
                             break;
                         }
 
@@ -213,7 +214,7 @@ public class TelegramBotWorker(
     }
 
     // --------------------------------------------------------------------
-    private Task HandleErrorAsync(ITelegramBotClient _, Exception ex, CancellationToken __)
+    private async Task HandleErrorAsync(ITelegramBotClient _, Exception ex, CancellationToken ct)
     {
         string msg = ex switch
         {
@@ -221,6 +222,16 @@ public class TelegramBotWorker(
             _ => ex.ToString()
         };
         _log.LogError(msg);
-        return Task.CompletedTask;
+
+        // Log to ErrorLog table
+        using var scope = _sp.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        uow.ErrorLogs.Add(new CarInsuranceBot.Domain.Entities.ErrorLog
+        {
+            Message = ex.Message,
+            StackTrace = ex.ToString(),
+            LoggedUtc = DateTime.UtcNow
+        });
+        await uow.SaveChangesAsync(ct);
     }
 }

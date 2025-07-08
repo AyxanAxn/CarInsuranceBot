@@ -1,6 +1,7 @@
 ﻿using CarInsuranceBot.Application.Common.Interfaces;
 using CarInsuranceBot.Application.Commands.Review;
 using CarInsuranceBot.Application.Commands.Upload;
+using CarInsuranceBot.Domain.Entities.Builders;
 using CarInsuranceBot.Domain.Entities;
 using CarInsuranceBot.Application.OCR;
 using CarInsuranceBot.Domain.Enums;
@@ -37,9 +38,6 @@ public class UploadDocumentCommandHandler :
     // --------------------------------------------------------------
     public async Task<string> Handle(UploadDocumentCommand cmd, CancellationToken ct)
     {
-        // ------------------------------------------------------------------
-        // 0.  Load user, manage attempts
-        // ------------------------------------------------------------------
         var user = await _uow.Users.GetAsync(cmd.ChatId, ct)
                    ?? throw new InvalidOperationException("User not found");
 
@@ -50,9 +48,8 @@ public class UploadDocumentCommandHandler :
             return $"❌ You reached {maxAttempts} upload attempts. Type /cancel to restart.";
         }
 
-        // ------------------------------------------------------------------
-        // 1.  Download tg file to memory to compute hash
-        // ------------------------------------------------------------------
+        //  Download tg file to memory to compute hash
+       
         await using var ms = new MemoryStream();
         await _bot.DownloadFile(cmd.TelegramFile.FilePath, ms, ct);
         var hash = Convert.ToHexString(SHA256.HashData(ms.ToArray()));
@@ -63,31 +60,22 @@ public class UploadDocumentCommandHandler :
             return "⚠️ That looks like a duplicate of an earlier photo. Please send a different image.";
         }
 
-        // ------------------------------------------------------------------
-        // 2.  Persist file to disk / blob
-        // ------------------------------------------------------------------
         var path = await _store.SaveAsync(cmd.TelegramFile, ct);   // original signature
-        
-        // ------------------------------------------------------------------
-        // 3.  Create Document row
-        // ------------------------------------------------------------------
+      
         var docType = cmd.IsPassport ? DocumentType.Passport
                                      : DocumentType.VehicleRegistration;
 
-        var doc = new Document
-        {
-            UserId = user.Id,
-            Type = docType,
-            Path = path,
-            UploadedUtc = DateTime.UtcNow,
-            ContentHash = hash
-        };
-        _uow.Documents.Add(doc);
-        await _uow.SaveChangesAsync(ct); // need doc.Id
+        var doc = new DocumentBuilder()
+            .WithUserId(user.Id)
+            .WithType(docType)
+            .WithPath(path)
+            .WithUploadedUtc(DateTime.UtcNow)
+            .WithContentHash(hash)
+            .Build();
 
-        // ------------------------------------------------------------------
-        // 4.  OCR
-        // ------------------------------------------------------------------
+        _uow.Documents.Add(doc);
+        await _uow.SaveChangesAsync(ct); 
+
         ms.Position = 0;
         var extracted = await _ocr.ExtractAsync(ms, docType, ct);
 
@@ -100,9 +88,6 @@ public class UploadDocumentCommandHandler :
                 Confidence = 0.9f
             });
 
-        // ------------------------------------------------------------------
-        // 5.  Advance stage & maybe reset attempts
-        // ------------------------------------------------------------------
         if (cmd.IsPassport)
             user.Stage = RegistrationStage.WaitingForVehicle;
         else
@@ -113,9 +98,6 @@ public class UploadDocumentCommandHandler :
 
         await _uow.SaveChangesAsync(ct);
 
-        // ------------------------------------------------------------------
-        // 6.  Build reply
-        // ------------------------------------------------------------------
         if (cmd.IsPassport)
         {
             var sb = new StringBuilder("✅ Passport received! Now please send a photo of the vehicle registration certificate.");

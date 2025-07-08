@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarInsuranceBot.Infrastruct
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarInsuranceBot.Bot", "CarInsuranceBot.Bot\CarInsuranceBot.Bot.csproj", "{DC5CB48E-7D45-4DA1-AF85-A869492CFE67}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarInsuranceBot.Tests", "CarInsuranceBot.Tests\CarInsuranceBot.Tests.csproj", "{3A1A748F-82F2-4C0E-B9B3-F8CF443835E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{DC5CB48E-7D45-4DA1-AF85-A869492CFE67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC5CB48E-7D45-4DA1-AF85-A869492CFE67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC5CB48E-7D45-4DA1-AF85-A869492CFE67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A1A748F-82F2-4C0E-B9B3-F8CF443835E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A1A748F-82F2-4C0E-B9B3-F8CF443835E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A1A748F-82F2-4C0E-B9B3-F8CF443835E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A1A748F-82F2-4C0E-B9B3-F8CF443835E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ─────────────────────────────
+       xUnit test-project settings
+       ───────────────────────────── -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- ─────────────────────────────
+       NuGet packages
+       ───────────────────────────── -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1" />
+
+    <!-- Mocking -->
+    <PackageReference Include="Moq" Version="4.20.72" />
+
+    <!-- Fluent assertions (optional but nice) -->
+    <PackageReference Include="FluentAssertions" Version="8.4.0" />
+
+    <!-- In-memory EF Core provider -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CarInsuranceBot.Application\CarInsuranceBot.Application.csproj" />
+    <ProjectReference Include="..\CarInsuranceBot.Domain\CarInsuranceBot.Domain.csproj" />
+    <ProjectReference Include="..\CarInsuranceBot.Infrastructure\CarInsuranceBot.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
