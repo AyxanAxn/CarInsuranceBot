@@ -29,7 +29,7 @@ public class GeneratePolicyCommandTests(InMemoryFixture fx) : IClassFixture<InMe
 
         var uow = new UnitOfWork(_db);
         var store = new Mock<IFileStore>();
-        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>()))
+        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("policy.pdf");
 
         var bot = new Mock<ITelegramBotClient>();

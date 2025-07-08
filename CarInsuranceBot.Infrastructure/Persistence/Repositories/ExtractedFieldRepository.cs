@@ -24,4 +24,12 @@ public class ExtractedFieldRepository(ApplicationDbContext db) : IExtractedField
                               .ToListAsync(ct);
         _db.ExtractedFields.RemoveRange(fields);
     }
+
+    public async Task<List<ExtractedField>> GetByDocumentAsync(Guid documentId, CancellationToken ct)
+    {
+        return await _db.ExtractedFields
+                        .Include(f => f.Document)
+                        .Where(f => f.DocumentId == documentId)
+                        .ToListAsync(ct);
+    }
 }

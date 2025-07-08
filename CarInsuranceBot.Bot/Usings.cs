@@ -1,6 +1,8 @@
 ﻿global using CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 global using CarInsuranceBot.Application.RegisterApplicationServices;
 global using CarInsuranceBot.Application.Commands.Telegram.Start;
+global using CarInsuranceBot.Application.Commands.Start;
+global using CarInsuranceBot.Application.Commands.Retry;
 global using CarInsuranceBot.Application.Common.Interfaces;
 global using CarInsuranceBot.Application.Commands.Upload;
 global using CarInsuranceBot.Application.Commands.Policy;

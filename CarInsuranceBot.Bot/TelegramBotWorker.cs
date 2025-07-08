@@ -56,10 +56,10 @@ public class TelegramBotWorker(
                 {
                     case "/start":
                         {
-                            var greeting = await mediator.Send(
-                                new StartCommand(chatId, msgTxt.From?.FirstName), ct);
+                            string reply = await mediator.Send(
+                                new EnsureFreshStartCommand(chatId, msgTxt.From?.FirstName), ct);
 
-                            await _bot.SendMessage(chatId, greeting,
+                            await _bot.SendMessage(chatId, reply,
                                 parseMode: ParseMode.Markdown, cancellationToken: ct,
                                 replyMarkup: MainMenu);
                             break;
@@ -71,11 +71,17 @@ public class TelegramBotWorker(
                             await _bot.SendMessage(chatId, price,
                                 parseMode: ParseMode.Markdown, cancellationToken: ct);
                             user.Stage = RegistrationStage.WaitingForPayment;
+                            await uow.SaveChangesAsync(ct);
                             break;
                         }
 
                     case "yes" when user?.Stage == RegistrationStage.WaitingForPayment:
                         {
+                            if (user is null)
+                            {
+                                await _bot.SendMessage(chatId, "❌ User not found. Please start with /start", cancellationToken: ct);
+                                break;
+                            }
                             var done = await mediator.Send(new GeneratePolicyCommand(user.Id), ct);
                             await _bot.SendMessage(chatId, done, cancellationToken: ct);
                             break;
@@ -84,7 +90,7 @@ public class TelegramBotWorker(
                     case "no" when user?.Stage == RegistrationStage.WaitingForPayment:
                         {
                             await _bot.SendMessage(chatId,
-                                "The price is fixed at 100 USD. Type *yes* whenever you're ready.",
+                                "💰 The price is fixed at **100 USD**. Type *yes* whenever you're ready.",
                                 parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }
@@ -92,7 +98,6 @@ public class TelegramBotWorker(
                     case "/resendpolicy":
                         {
                             var reply = await mediator.Send(new ResendPolicyCommand(chatId), ct);
-                            // The handler already sends the PDF; we just send the textual reply.
                             await _bot.SendMessage(chatId, reply, cancellationToken: ct);
                             break;
                         }
@@ -105,18 +110,8 @@ public class TelegramBotWorker(
 
                     case "retry" when user?.Stage == RegistrationStage.WaitingForReview:
                         {
-                            // 1. Delete previous docs for this user (in review stage).
-                            await uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForReview, ct);
-                            await uow.ExtractedFields.RemoveByUserAsync(user.Id, ct);
-
-                            // 2. Reset counters & stage.
-                            user.Stage = RegistrationStage.WaitingForPassport;   // start from the top
-                            user.UploadAttempts = 0;
-
-                            await uow.SaveChangesAsync(ct);
-
-                            await _bot.SendMessage(chatId,
-                                "Let's try again. Please upload your *passport* photo.",
+                            var reply = await mediator.Send(new RetryCommand(chatId), ct);
+                            await _bot.SendMessage(chatId, reply,
                                 parseMode: ParseMode.Markdown,
                                 cancellationToken: ct,
                                 replyMarkup: MainMenu);
@@ -139,9 +134,6 @@ public class TelegramBotWorker(
                         }
                     case var cmd when cmd.StartsWith("/simulateocr") && _admins.Contains(chatId):
                         {
-                            bool enable = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                             .ElementAtOrDefault(1)?
-                                             .Equals("on", StringComparison.InvariantCultureIgnoreCase) == true;
                             var reply = await mediator.Send(new ToggleOcrSimulationCommand(), ct);
                             await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
@@ -157,7 +149,7 @@ public class TelegramBotWorker(
                             catch
                             {
                                 aiReply = "🤖 Sorry, I'm a bit overloaded. Please try again in a minute.";
-                                throw;
+                                _log.LogWarning("ChatQuery failed for user {ChatId}, using fallback message", chatId);
                             }
                             await _bot.SendMessage(chatId, aiReply, cancellationToken: ct);
                             break;
@@ -173,20 +165,31 @@ public class TelegramBotWorker(
             {
                 var chatId = update.Message.Chat.Id;
                 var photo = update.Message.Photo[^1];                 // highest-res
-                var tgFile = await _bot.GetFile(photo.FileId, ct);
+                
+                try
+                {
+                    var tgFile = await _bot.GetFile(photo.FileId, ct);
 
-                using var scope = _sp.CreateScope();
-                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                    using var scope = _sp.CreateScope();
+                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                    var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-                var user = await uow.Users.GetAsync(chatId, ct);
-                bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
+                    var user = await uow.Users.GetAsync(chatId, ct);
+                    bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
 
-                var reply = await mediator.Send(
-                    new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
+                    var reply = await mediator.Send(
+                        new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
 
-                await _bot.SendMessage(chatId, reply,
-                    parseMode: ParseMode.Markdown, cancellationToken: ct);
+                    await _bot.SendMessage(chatId, reply,
+                        parseMode: ParseMode.Markdown, cancellationToken: ct);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Error processing photo upload for chat {ChatId}", chatId);
+                    await _bot.SendMessage(chatId, 
+                        "❌ Sorry, there was an error processing your photo. Please try again.", 
+                        cancellationToken: ct);
+                }
             }
         }
         catch (Exception ex)

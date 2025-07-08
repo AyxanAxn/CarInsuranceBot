@@ -1,43 +1,66 @@
 ﻿using CarInsuranceBot.Application.Common.Interfaces;
 using CarInsuranceBot.Application.OCR;
 using CarInsuranceBot.Domain.Entities;
+using CarInsuranceBot.Domain.Enums;
 using System.Text;
 using MediatR;
 
 namespace CarInsuranceBot.Application.Commands.Review;
 
-public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr) : IRequestHandler<ExtractAndReviewCommand, string>
+public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr, IFileStore fileStore) : IRequestHandler<ExtractAndReviewCommand, string>
 {
     private readonly IUnitOfWork _uow = uow;
     private readonly IMindeeService _ocr = ocr;
-
+    private readonly IFileStore _fileStore = fileStore;
     public async Task<string> Handle(ExtractAndReviewCommand cmd, CancellationToken ct)
     {
         var doc = await _uow.Documents.GetAsync(cmd.DocumentId, ct)
                   ?? throw new KeyNotFoundException("Document not found");
 
-        await using var fs = File.OpenRead(doc.Path);
-        var extracted = await _ocr.ExtractAsync(fs, doc.Type, ct);
-
-
-        // store each field
-        foreach (var (name, value) in extracted.Values)
+        // Get all extracted fields for this user (both passport and vehicle registration)
+        var userDocuments = await _uow.Documents.GetByUserAsync(doc.UserId, ct);
+        var allExtractedFields = new List<ExtractedField>();
+        
+        foreach (var userDoc in userDocuments)
         {
-            _uow.ExtractedFields.Add(new ExtractedField
-            {
-                DocumentId = doc.Id,
-                FieldName = name,
-                FieldValue = value,
-            });
+            var fields = await _uow.ExtractedFields.GetByDocumentAsync(userDoc.Id, ct);
+            allExtractedFields.AddRange(fields);
         }
 
-        await _uow.SaveChangesAsync(ct);   // ← make sure DB commit happens
+        var sb = new StringBuilder("🔍 *Please review the extracted data:*\n\n");
+        
+        // Group fields by document type for better presentation
+        var passportFields = allExtractedFields.Where(f => f.Document.Type == DocumentType.Passport).ToList();
+        var vehicleFields = allExtractedFields.Where(f => f.Document.Type == DocumentType.VehicleRegistration).ToList();
 
-        var sb = new StringBuilder("🔍 *Please review the extracted data:*");
-        foreach (var (n, v) in extracted.Values)
-            sb.Append($"\n• *{n}*: `{v}`");
+        if (passportFields.Any())
+        {
+            sb.AppendLine("*📄 Passport Data:*");
+            foreach (var field in passportFields)
+                sb.AppendLine($"• *{field.FieldName}*: `{field.FieldValue}`");
+            sb.AppendLine();
+        }
 
-        sb.Append("\n\nType *yes* to continue or *retry* to upload new photos.");
+        if (vehicleFields.Any())
+        {
+            sb.AppendLine("*🚗 Vehicle Registration Data:*");
+            foreach (var field in vehicleFields)
+                sb.AppendLine($"• *{field.FieldName}*: `{field.FieldValue}`");
+            sb.AppendLine();
+        }
+
+        sb.Append("Type *yes* to continue or *retry* to upload new photos.");
         return sb.ToString();
+    }
+
+    private static string GetBlobName(string pathOrUrl)
+    {
+        if (!pathOrUrl.Contains('/'))
+            return pathOrUrl;
+
+        if (Uri.TryCreate(pathOrUrl, UriKind.Absolute, out var uri))
+            return uri.Segments.Last();
+
+        return pathOrUrl.Split('/').Last();
     }
 }

@@ -1,4 +1,5 @@
-﻿using CarInsuranceBot.Domain.Shared;
+﻿using Azure.Storage.Blobs;
+using CarInsuranceBot.Domain.Shared;
 
 namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
@@ -14,23 +15,34 @@ public static class ServiceCollectionExtensions
         services.Configure<MindeeOptions>(config.GetSection(MindeeOptions.Section));
         services.Configure<GeminiOptions>(config.GetSection(GeminiOptions.Section));
         services.Configure<AdminOptions>(config.GetSection(AdminOptions.Section));
+        services.Configure<AzureBlobContainerOptions>(config.GetSection(AzureBlobContainerOptions.Section));
+        services.Configure<AzureStorageOptions>(config.GetSection(AzureStorageOptions.Section));
 
         // 2. EF Core
         services.AddDbContext<ApplicationDbContext>(opt =>
-            opt.UseSqlServer(config.GetConnectionString("Default")));
-
-        services.AddSingleton<IFileStore, DiskFileStore>();
+            opt.UseSqlServer(
+                config.GetConnectionString("Default"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure()
+            ));
 
 
         // 3. External services
         services.AddHttpClient("openai");
         services.AddScoped<IGeminiService, GeminiService>();
+
+        services.AddSingleton (sp =>
+        {
+            string conn = sp.GetRequiredService<IOptions<AzureStorageOptions>>().Value.ConnectionString;
+            return new BlobServiceClient(conn);
+        });
+
         services.AddSingleton<ITelegramBotClient>(sp =>
         {
             var token = sp.GetRequiredService<IOptions<TelegramOptions>>().Value.BotToken;
             return new TelegramBotClient(token);
         });
 
+        services.AddSingleton<IFileStore, BlobFileStore>();
         services.AddScoped<IGeminiService, GeminiService>();
         services.AddScoped<IMindeeService, MindeeService>();
         services.AddSingleton<IOcrSimulationSwitch, OcrSimulationSwitch>();

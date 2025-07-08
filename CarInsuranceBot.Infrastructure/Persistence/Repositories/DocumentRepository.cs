@@ -22,4 +22,11 @@ public class DocumentRepository(ApplicationDbContext db) : IDocumentRepository
 
         _db.Documents.RemoveRange(docs);
     }
+
+    public async Task<List<Document>> GetByUserAsync(Guid userId, CancellationToken ct)
+    {
+        return await _db.Documents
+                        .Where(d => d.UserId == userId)
+                        .ToListAsync(ct);
+    }
 }

@@ -10,4 +10,5 @@ public interface IDocumentRepository
     Task<bool> ExistsHashAsync(Guid userId, string hash, CancellationToken ct);
     Task RemoveRangeByUserStageAsync(Guid userId,
                                  RegistrationStage stage, CancellationToken ct);
+    Task<List<Document>> GetByUserAsync(Guid userId, CancellationToken ct);
 }

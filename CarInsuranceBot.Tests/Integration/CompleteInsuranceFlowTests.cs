@@ -19,7 +19,7 @@ public class CompleteInsuranceFlowTests : IClassFixture<InMemoryFixture>
         // Setup file storage
         store.Setup(s => s.SaveAsync(It.IsAny<TelegramFile>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("stored_path");
-        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>()))
+        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("policies/test_policy.pdf");
 
         // Setup bot responses
