@@ -1,6 +1,5 @@
 ﻿using CarInsuranceBot.Application.Common.Interfaces;
 using CarInsuranceBot.Application.Commands.Review;
-using CarInsuranceBot.Application.Commands.Upload;
 using CarInsuranceBot.Domain.Entities.Builders;
 using CarInsuranceBot.Domain.Entities;
 using CarInsuranceBot.Application.OCR;
@@ -10,30 +9,21 @@ using Telegram.Bot;
 using System.Text;
 using MediatR;
 
-public class UploadDocumentCommandHandler :
-    IRequestHandler<UploadDocumentCommand, string>
+namespace CarInsuranceBot.Application.Commands.Upload;
+public class UploadDocumentCommandHandler(
+    IUnitOfWork uow,
+    IFileStore store,
+    IMediator mediator,
+    IMindeeService ocr,
+    ITelegramBotClient bot) : IRequestHandler<UploadDocumentCommand, string>
 {
     private const int maxAttempts = 5;
 
-    private readonly IUnitOfWork _uow;
-    private readonly IFileStore _store;
-    private readonly IMediator _mediator;
-    private readonly IMindeeService _ocr;
-    private readonly ITelegramBotClient _bot;
-
-    public UploadDocumentCommandHandler(
-        IUnitOfWork uow,
-        IFileStore store,
-        IMediator mediator,
-        IMindeeService ocr,
-        ITelegramBotClient bot)
-    {
-        _uow = uow;
-        _store = store;
-        _mediator = mediator;
-        _ocr = ocr;
-        _bot = bot;
-    }
+    private readonly IUnitOfWork _uow = uow;
+    private readonly IFileStore _store = store;
+    private readonly IMediator _mediator = mediator;
+    private readonly IMindeeService _ocr = ocr;
+    private readonly ITelegramBotClient _bot = bot;
 
     // --------------------------------------------------------------
     public async Task<string> Handle(UploadDocumentCommand cmd, CancellationToken ct)
@@ -49,7 +39,7 @@ public class UploadDocumentCommandHandler :
         }
 
         //  Download tg file to memory to compute hash
-       
+
         await using var ms = new MemoryStream();
         await _bot.DownloadFile(cmd.TelegramFile.FilePath, ms, ct);
         var hash = Convert.ToHexString(SHA256.HashData(ms.ToArray()));
@@ -61,7 +51,7 @@ public class UploadDocumentCommandHandler :
         }
 
         var path = await _store.SaveAsync(cmd.TelegramFile, ct);   // original signature
-      
+
         var docType = cmd.IsPassport ? DocumentType.Passport
                                      : DocumentType.VehicleRegistration;
 
@@ -74,7 +64,7 @@ public class UploadDocumentCommandHandler :
             .Build();
 
         _uow.Documents.Add(doc);
-        await _uow.SaveChangesAsync(ct); 
+        await _uow.SaveChangesAsync(ct);
 
         ms.Position = 0;
         var extracted = await _ocr.ExtractAsync(ms, docType, ct);

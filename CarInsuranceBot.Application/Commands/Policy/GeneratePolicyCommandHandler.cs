@@ -1,7 +1,5 @@
 ﻿using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Application.Commands.Policy;
 using CarInsuranceBot.Application.Utils;
-using CarInsuranceBot.Domain.Entities;
 using CarInsuranceBot.Domain.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
@@ -9,18 +7,14 @@ using MediatR;
 using CarInsuranceBot.Domain.Entities.Builders;
 using CarInsuranceBot.Application.AI;
 
-public class GeneratePolicyCommandHandler : IRequestHandler<GeneratePolicyCommand, string>
+namespace CarInsuranceBot.Application.Commands.Policy;
+public class GeneratePolicyCommandHandler(
+    IUnitOfWork uow, IFileStore store, ITelegramBotClient bot, IGeminiService geminiService) : IRequestHandler<GeneratePolicyCommand, string>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IFileStore _store;
-    private readonly ITelegramBotClient _bot;
-    private readonly IGeminiService _geminiService;
-
-    public GeneratePolicyCommandHandler(
-        IUnitOfWork uow, IFileStore store, ITelegramBotClient bot, IGeminiService geminiService)
-    {
-        _uow = uow; _store = store; _bot = bot; _geminiService = geminiService;
-    }
+    private readonly IUnitOfWork _uow = uow;
+    private readonly IFileStore _store = store;
+    private readonly ITelegramBotClient _bot = bot;
+    private readonly IGeminiService _geminiService = geminiService;
 
     public async Task<string> Handle(GeneratePolicyCommand cmd, CancellationToken ct)
     {

@@ -6,16 +6,10 @@ using MediatR;
 
 namespace CarInsuranceBot.Application.Commands.Review;
 
-public class ExtractAndReviewCommandHandler : IRequestHandler<ExtractAndReviewCommand, string>
+public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr) : IRequestHandler<ExtractAndReviewCommand, string>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly IMindeeService _ocr;
-
-    public ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr)
-    {
-        _uow = uow;
-        _ocr = ocr;
-    }
+    private readonly IUnitOfWork _uow = uow;
+    private readonly IMindeeService _ocr = ocr;
 
     public async Task<string> Handle(ExtractAndReviewCommand cmd, CancellationToken ct)
     {

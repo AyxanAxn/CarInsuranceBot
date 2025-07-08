@@ -1,8 +1,4 @@
-﻿using CarInsuranceBot.Application.Admin;
-using CarInsuranceBot.Infrastructure.Options;
-using Microsoft.Extensions.Options;
-
-namespace CarInsuranceBot.Bot;
+﻿namespace CarInsuranceBot.Bot;
 
 public class TelegramBotWorker(
     ITelegramBotClient bot,

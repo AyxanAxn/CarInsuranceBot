@@ -1,8 +1,8 @@
-﻿using CarInsuranceBot.Application.Commands.Flow;
-using CarInsuranceBot.Application.Common.Interfaces;
+﻿using CarInsuranceBot.Application.Common.Interfaces;
 using CarInsuranceBot.Domain.Enums;
 using MediatR;
 
+namespace CarInsuranceBot.Application.Commands.Cancel;
 public class CancelCommandHandler : IRequestHandler<CancelCommand, string>
 {
     private readonly IUnitOfWork _uow;

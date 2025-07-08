@@ -1,10 +1,9 @@
-﻿using CarInsuranceBot.Application.Admin;
-using CarInsuranceBot.Application.OCR;
+﻿using CarInsuranceBot.Application.OCR;
 using CarInsuranceBot.Domain.Enums;
 using MediatR;
 
 namespace CarInsuranceBot.Application.Commands.Admin;
-public class ToggleOcrSimulationHandler(IMindeeService mindee) : IRequestHandler<ToggleOcrSimulationCommand, string>
+public class ToggleOcrSimulationCommandHandler(IMindeeService mindee) : IRequestHandler<ToggleOcrSimulationCommand, string>
 {
     private readonly IMindeeService _mindee = mindee;
 

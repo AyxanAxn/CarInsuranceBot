@@ -1,5 +1,5 @@
 ﻿using MediatR;
 
-namespace CarInsuranceBot.Application.Commands.Flow;
+namespace CarInsuranceBot.Application.Commands.Cancel;
 
 public record CancelCommand(long ChatId) : IRequest<string>;

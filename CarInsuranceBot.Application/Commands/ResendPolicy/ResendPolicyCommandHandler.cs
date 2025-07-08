@@ -5,16 +5,10 @@ using MediatR;
 
 namespace CarInsuranceBot.Application.Commands.Policy;
 
-public class ResendPolicyCommandHandler : IRequestHandler<ResendPolicyCommand, string>
+public class ResendPolicyCommandHandler(IUnitOfWork uow, ITelegramBotClient bot) : IRequestHandler<ResendPolicyCommand, string>
 {
-    private readonly IUnitOfWork _uow;
-    private readonly ITelegramBotClient _bot;
-
-    public ResendPolicyCommandHandler(IUnitOfWork uow, ITelegramBotClient bot)
-    {
-        _uow = uow;
-        _bot = bot;
-    }
+    private readonly IUnitOfWork _uow = uow;
+    private readonly ITelegramBotClient _bot = bot;
 
     public async Task<string> Handle(ResendPolicyCommand cmd, CancellationToken ct)
     {

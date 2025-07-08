@@ -3,7 +3,7 @@ using CarInsuranceBot.Domain.Entities;
 using CarInsuranceBot.Domain.Enums;
 using MediatR;
 
-namespace CarInsuranceBot.Application.Commands.Start;
+namespace CarInsuranceBot.Application.Commands.Telegram.Start;
 
 public class StartCommandHandler : IRequestHandler<StartCommand, string>
 {

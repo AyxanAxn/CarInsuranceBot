@@ -5,9 +5,7 @@ global using CarInsuranceBot.Application.Commands.Upload;
 global using User = CarInsuranceBot.Domain.Entities.User;
 global using CarInsuranceBot.Infrastructure.Persistence;
 global using CarInsuranceBot.Application.Commands.Price;
-global using CarInsuranceBot.Application.Commands.Start;
 global using Microsoft.Extensions.Logging.Abstractions;
-global using CarInsuranceBot.Application.Commands.Flow;
 global using TelegramFile = Telegram.Bot.Types.TGFile;
 global using CarInsuranceBot.Infrastructure.Services;
 global using CarInsuranceBot.Infrastructure.Options;
@@ -38,3 +36,9 @@ global using MediatR;
 global using System;
 global using Xunit;
 global using Moq;
+
+
+global using CarInsuranceBot.Application.Commands.Cancel;
+global using CarInsuranceBot.Application.Commands.Telegram.Start;
+global using CarInsuranceBot.Application.Commands.Telegram.Start;
+global using CarInsuranceBot.Application.Commands.Admin;

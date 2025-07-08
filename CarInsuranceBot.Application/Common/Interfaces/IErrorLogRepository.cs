@@ -1,9 +1,7 @@
 using CarInsuranceBot.Domain.Entities;
 
-namespace CarInsuranceBot.Application.Common.Interfaces
+namespace CarInsuranceBot.Application.Common.Interfaces;
+public interface IErrorLogRepository
 {
-    public interface IErrorLogRepository
-    {
-        void Add(ErrorLog log);
-    }
-} 
+    void Add(ErrorLog log);
+}

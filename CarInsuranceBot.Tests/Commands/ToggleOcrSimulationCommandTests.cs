@@ -1,6 +1,4 @@
-﻿using CarInsuranceBot.Application.Commands.Admin;
-
-namespace CarInsuranceBot.Tests.Commands;
+﻿namespace CarInsuranceBot.Tests.Commands;
 
 public class ToggleOcrSimulationCommandTests
 {
@@ -22,7 +20,7 @@ public class ToggleOcrSimulationCommandTests
                 .Add("Model", "Santa FE")
                 .Add("Year", "2025"));
 
-        var handler = new ToggleOcrSimulationHandler(mindeeMock.Object);
+        var handler = new ToggleOcrSimulationCommandHandler(mindeeMock.Object);
 
         // Act
         var result = await handler.Handle(new ToggleOcrSimulationCommand(), default);

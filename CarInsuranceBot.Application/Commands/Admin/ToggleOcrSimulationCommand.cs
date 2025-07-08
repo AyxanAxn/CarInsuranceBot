@@ -1,6 +1,6 @@
 ﻿using CarInsuranceBot.Domain.Enums;
 using MediatR;
 
-namespace CarInsuranceBot.Application.Admin;
+namespace CarInsuranceBot.Application.Commands.Admin;
 
 public record ToggleOcrSimulationCommand() : IRequest<string>;
