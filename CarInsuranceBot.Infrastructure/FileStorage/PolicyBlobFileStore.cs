@@ -38,5 +38,15 @@ public sealed class PolicyBlobFileStore : IPolicyFileStore
 
     // Not needed for policy PDFs
     public Task<string> SaveAsync(Telegram.Bot.Types.TGFile telegramFile, CancellationToken ct) => Task.FromResult("");
-    public Task<Stream> OpenReadAsync(string path, CancellationToken ct = default) => Task.FromResult<Stream>(new MemoryStream());
+    public async Task<Stream> OpenReadAsync(string path, CancellationToken ct = default)
+    {
+        var blobName = path;
+        if (Uri.TryCreate(path, UriKind.Absolute, out var uri))
+        {
+            blobName = uri.Segments.Last();
+        }
+        BlobClient blob = _container.GetBlobClient(blobName);
+
+        return await _container.GetBlobClient(blobName).OpenReadAsync();
+    }
 } 

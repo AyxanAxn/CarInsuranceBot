@@ -1,11 +1,4 @@
 using CarInsuranceBot.Application.Commands.Start;
-using CarInsuranceBot.Application.Common;
-using CarInsuranceBot.Domain.Entities;
-using CarInsuranceBot.Domain.Enums;
-using CarInsuranceBot.Tests.Helpers;
-using MediatR;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace CarInsuranceBot.Tests.Commands;
 
