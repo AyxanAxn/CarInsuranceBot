@@ -1,5 +1,8 @@
 namespace CarInsuranceBot.Tests.Commands;
 
+using CarInsuranceBot.Application.Common.Interfaces;
+using System.IO;
+
 public class ResendPolicyCommandTests : IClassFixture<InMemoryFixture>, IClassFixture<FileTestFixture>
 {
     private readonly ApplicationDbContext _db;
@@ -9,6 +12,14 @@ public class ResendPolicyCommandTests : IClassFixture<InMemoryFixture>, IClassFi
     {
         _db = fx.Db;
         _fileFixture = fileFixture;
+    }
+
+    private class DummyPolicyFileStore : IPolicyFileStore
+    {
+        public Task<string> SaveAsync(Telegram.Bot.Types.TGFile telegramFile, CancellationToken ct) => Task.FromResult("");
+        public Task<string> SavePdf(byte[] pdfBytes, string fileName, CancellationToken ct = default) => Task.FromResult("");
+        public Task<Stream> OpenReadAsync(string path, CancellationToken ct = default) => Task.FromResult<Stream>(new MemoryStream(System.Text.Encoding.UTF8.GetBytes("dummy pdf content")));
+        public Task DeleteAsync(string path, CancellationToken ct = default) => Task.CompletedTask;
     }
 
     [Fact]
@@ -27,7 +38,7 @@ public class ResendPolicyCommandTests : IClassFixture<InMemoryFixture>, IClassFi
         await _db.SaveChangesAsync();
 
         var botMock = new Mock<ITelegramBotClient>();
-        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), botMock.Object);
+        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), new DummyPolicyFileStore(), botMock.Object);
 
         // Act
         var result = await handler.Handle(new ResendPolicyCommand(user.TelegramUserId), default);
@@ -40,7 +51,7 @@ public class ResendPolicyCommandTests : IClassFixture<InMemoryFixture>, IClassFi
     public async Task Returns_error_when_no_policy_found()
     {
         // Arrange
-        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), Mock.Of<ITelegramBotClient>());
+        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), new DummyPolicyFileStore(), Mock.Of<ITelegramBotClient>());
 
         // Act
         var result = await handler.Handle(new ResendPolicyCommand(999999), default);
@@ -65,7 +76,7 @@ public class ResendPolicyCommandTests : IClassFixture<InMemoryFixture>, IClassFi
         await _db.SaveChangesAsync();
 
         var botMock = new Mock<ITelegramBotClient>();
-        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), botMock.Object);
+        var handler = new ResendPolicyCommandHandler(new UnitOfWork(_db), new DummyPolicyFileStore(), botMock.Object);
 
         // Act
         var result = await handler.Handle(new ResendPolicyCommand(user.TelegramUserId), default);
