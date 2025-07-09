@@ -1,8 +1,4 @@
 using CarInsuranceBot.Application.Commands.Retry;
-using CarInsuranceBot.Domain.Entities;
-using CarInsuranceBot.Domain.Enums;
-using CarInsuranceBot.Tests.Helpers;
-using Moq;
 
 namespace CarInsuranceBot.Tests.Commands;
 

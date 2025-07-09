@@ -1,7 +1,6 @@
 # CarInsuranceBot
 
 ![.NET 8](https://img.shields.io/badge/.NET-8.0-purple)
-[![CI](https://github.com/your-org/CarInsuranceBot/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/CarInsuranceBot/actions)
 [![MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
 
 A Telegram bot that on-boards drivers, OCR-scans vehicle docs, and issues ready-to-sign PDFs for instant car-insurance — built with CQRS and clean-architecture patterns.
@@ -57,6 +56,8 @@ _Issuing a policy in under 30 seconds_
 | `/cancel`       | Cancel the current registration/session.      |
 | `/retry`        | Retry the document upload or review step.     |
 | `/resendpolicy` | Resend the last issued policy document.       |
+
+> **Note:** The system prevents you from uploading the same passport twice—duplicate detection is enforced for your security and convenience.
 
 ### **Admin Commands**
 | Command           | Description                                                      |
@@ -128,6 +129,8 @@ _Issuing a policy in under 30 seconds_
   3. Handlers use repositories/services to read/write data, interact with file storage, or call external APIs.
   4. Responses are formatted and sent back to the user.
 - **Admin features** (e.g., `/stats`, `/faillogs`, `/auditlogs`) are implemented as queries with Markdown-safe output.
+
+> **Robustness:** If something goes wrong during policy creation (e.g., an error or failure), the system is designed to prevent issues and recover gracefully. You can retry, and admins can review logs and intervene if needed.
 
 > **CQRS ensures**: Clean separation of reads/writes, testability, and scalability.
 
