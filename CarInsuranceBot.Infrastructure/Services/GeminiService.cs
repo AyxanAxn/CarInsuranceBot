@@ -1,6 +1,4 @@
 ﻿namespace CarInsuranceBot.Infrastructure.Services;
-
-
 public sealed class GeminiService : IGeminiService
 {
     private readonly HttpClient _http;
@@ -30,9 +28,6 @@ public sealed class GeminiService : IGeminiService
                                        string prompt,
                                        CancellationToken ct)
     {
-        const int maxRetries = 3;
-        const int baseDelayMs = 2_000;
-        int attempt = 0;
         var startUtc = DateTime.UtcNow;
 
         while (true)

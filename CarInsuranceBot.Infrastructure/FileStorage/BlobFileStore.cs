@@ -1,8 +1,4 @@
-﻿using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using System.IO;
-
-namespace CarInsuranceBot.Infrastructure.FileStorage;
+﻿namespace CarInsuranceBot.Infrastructure.FileStorage;
 
 // Stores user-supplied files in an Azure Blob container.
 public sealed class BlobFileStore : IFileStore

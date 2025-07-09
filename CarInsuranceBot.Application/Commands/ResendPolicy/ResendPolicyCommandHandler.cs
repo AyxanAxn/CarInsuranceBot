@@ -3,7 +3,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot;
 using MediatR;
 
-namespace CarInsuranceBot.Application.Commands.Policy;
+namespace CarInsuranceBot.Application.Commands.ResendPolicy;
 
 public class ResendPolicyCommandHandler(IUnitOfWork uow, IPolicyFileStore policyFileStore, ITelegramBotClient bot) : IRequestHandler<ResendPolicyCommand, string>
 {

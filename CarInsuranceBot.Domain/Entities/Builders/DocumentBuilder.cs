@@ -1,5 +1,3 @@
-using System;
-
 namespace CarInsuranceBot.Domain.Entities.Builders
 {
     public class DocumentBuilder

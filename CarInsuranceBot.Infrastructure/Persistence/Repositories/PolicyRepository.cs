@@ -1,7 +1,4 @@
-﻿using CarInsuranceBot.Domain.Entities;
-using CarInsuranceBot.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-
+﻿namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
 public class PolicyRepository(ApplicationDbContext db) : IPolicyRepository
 {
     private readonly ApplicationDbContext _db = db;

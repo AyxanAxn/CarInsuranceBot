@@ -1,6 +1,4 @@
-﻿
-
-namespace CarInsuranceBot.Infrastructure.Persistence.Configurations;
+﻿namespace CarInsuranceBot.Infrastructure.Persistence.Configurations;
 
 public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {

@@ -4,22 +4,24 @@ using CarInsuranceBot.Domain.Enums;
 using MediatR;
 using System.Text;
 
-namespace CarInsuranceBot.Application.Admin;
+namespace CarInsuranceBot.Application.Queries.Admin;
 
 public class FailLogsQueryHandler : IRequestHandler<FailLogsQuery, string>
 {
     private readonly IUnitOfWork _uow;
     public FailLogsQueryHandler(IUnitOfWork uow) => _uow = uow;
 
-    public async Task<string> Handle(FailLogsQuery q, CancellationToken ct)
+    public Task<string> Handle(FailLogsQuery q, CancellationToken ct)
     {
         var logs = _uow.Errors
             .OrderByDescending(e => e.LoggedUtc)
             .Take(q.Take)
             .ToList();
 
-        if (!logs.Any())
-            return "🎉 No errors logged.";
+        if (logs.Count == 0)
+        {
+            return Task.FromResult("🎉 No errors logged.");
+        }
 
         var sb = new StringBuilder();
         sb.AppendLine($"⚠️ *Last {logs.Count} Errors:*\n");
@@ -34,14 +36,14 @@ public class FailLogsQueryHandler : IRequestHandler<FailLogsQuery, string>
 
             sb.AppendLine($"🕐 **{timeString}**");
             sb.AppendLine($"❌ {MarkdownHelper.SafeCodeBlock(log.Message)}");
-            
+
             // If it's a policy generation error, highlight it
             if (log.Message.Contains("policy", StringComparison.OrdinalIgnoreCase) ||
                 log.Message.Contains("Policy", StringComparison.OrdinalIgnoreCase))
             {
                 sb.AppendLine("🚨 *Policy Generation Error*");
             }
-            
+
             sb.AppendLine();
         }
 
@@ -52,6 +54,6 @@ public class FailLogsQueryHandler : IRequestHandler<FailLogsQuery, string>
             sb.AppendLine($"\n📄 *Failed Policies: {failedPolicies}*");
         }
 
-        return sb.ToString();
+        return Task.FromResult(sb.ToString());
     }
 }

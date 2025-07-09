@@ -1,8 +1,6 @@
-﻿namespace CarInsuranceBot.Infrastructure.Options
+﻿namespace CarInsuranceBot.Infrastructure.Options;
+public sealed class AzureStorageOptions
 {
-    public sealed class AzureStorageOptions
-    {
-        public const string Section = "AzureStorage";
-        public string ConnectionString { get; init; } = "";
-    }
+    public const string Section = "AzureStorage";
+    public string ConnectionString { get; init; } = "";
 }

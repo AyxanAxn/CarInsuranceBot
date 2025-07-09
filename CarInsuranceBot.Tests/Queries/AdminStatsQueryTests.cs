@@ -1,4 +1,6 @@
-﻿namespace CarInsuranceBot.Tests.Queries;
+﻿using CarInsuranceBot.Application.Queries.Admin;
+
+namespace CarInsuranceBot.Tests.Queries;
 public class AdminStatsQueryTests(InMemoryFixture fx) : IClassFixture<InMemoryFixture>
 {
     private readonly ApplicationDbContext _db = fx.Db;

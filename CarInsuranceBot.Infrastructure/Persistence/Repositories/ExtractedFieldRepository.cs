@@ -9,13 +9,15 @@ public class ExtractedFieldRepository(ApplicationDbContext db) : IExtractedField
     /// <summary>
     /// Returns the first VIN we stored for the user, or null if none exists.
     /// </summary>
-    public async Task<string?> FirstVinAsync(Guid userId, CancellationToken ct) =>
-        await _db.ExtractedFields
+    public async Task<string?> FirstVinAsync(Guid userId, CancellationToken ct)
+    {
+        return await _db.ExtractedFields
                  .Where(f => f.Document.UserId == userId &&
                              f.FieldName == "VIN")
                  .OrderBy(f => f.Id)                    // oldest first → deterministic
                  .Select(f => f.FieldValue)
                  .FirstOrDefaultAsync(ct);
+    }
 
     public async Task RemoveByUserAsync(Guid userId, CancellationToken ct)
     {

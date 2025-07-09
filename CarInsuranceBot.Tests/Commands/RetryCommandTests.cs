@@ -2,6 +2,7 @@ using CarInsuranceBot.Application.Commands.Retry;
 using CarInsuranceBot.Domain.Entities;
 using CarInsuranceBot.Domain.Enums;
 using CarInsuranceBot.Tests.Helpers;
+using Moq;
 
 namespace CarInsuranceBot.Tests.Commands;
 
@@ -16,7 +17,8 @@ public class RetryCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new RetryCommandHandler(uow);
+        var fileStore = new Mock<IFileStore>();
+        var handler = new RetryCommandHandler(uow, fileStore.Object);
         var user = new User
         {
             TelegramUserId = 1001,
@@ -46,7 +48,8 @@ public class RetryCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new RetryCommandHandler(uow);
+        var fileStore = new Mock<IFileStore>();
+        var handler = new RetryCommandHandler(uow, fileStore.Object);
         var user = new User
         {
             TelegramUserId = 1002,
@@ -74,7 +77,8 @@ public class RetryCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new RetryCommandHandler(uow);
+        var fileStore = new Mock<IFileStore>();
+        var handler = new RetryCommandHandler(uow, fileStore.Object);
         var command = new RetryCommand(9999);
 
         // Act

@@ -1,7 +1,3 @@
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using CarInsuranceBot.Infrastructure.Options;
-
 namespace CarInsuranceBot.Infrastructure.FileStorage;
 
 public sealed class PolicyBlobFileStore : IPolicyFileStore

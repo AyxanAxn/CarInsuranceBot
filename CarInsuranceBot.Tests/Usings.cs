@@ -13,7 +13,6 @@ global using TelegramFile = Telegram.Bot.Types.TGFile;
 global using CarInsuranceBot.Application.Queries.Chat;
 global using CarInsuranceBot.Infrastructure.Services;
 global using CarInsuranceBot.Infrastructure.Options;
-global using CarInsuranceBot.Infrastructure.OCR;
 global using CarInsuranceBot.Application.Admin;
 global using CarInsuranceBot.Application.OCR;
 global using CarInsuranceBot.Domain.Entities;

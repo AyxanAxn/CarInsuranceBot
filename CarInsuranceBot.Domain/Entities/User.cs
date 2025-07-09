@@ -17,18 +17,13 @@
         public bool IsInconsistent()
         {
             // Check if user stage doesn't match their data
-            switch (Stage)
+            return Stage switch
             {
-                case RegistrationStage.WaitingForVehicle:
-                    // Should have passport document
-                    return !Documents.Any(d => d.Type == Domain.Enums.DocumentType.Passport);
-                case RegistrationStage.WaitingForReview:
-                    // Should have both documents
-                    return !Documents.Any(d => d.Type == Domain.Enums.DocumentType.Passport) ||
-                           !Documents.Any(d => d.Type == Domain.Enums.DocumentType.VehicleRegistration);
-                default:
-                    return false;
-            }
+                RegistrationStage.WaitingForVehicle => !Documents.Any(d => d.Type == Domain.Enums.DocumentType.Passport),// Should have passport document
+                RegistrationStage.WaitingForReview => !Documents.Any(d => d.Type == Domain.Enums.DocumentType.Passport) ||
+                                           !Documents.Any(d => d.Type == Domain.Enums.DocumentType.VehicleRegistration),// Should have both documents
+                _ => false,
+            };
         }
 
         public void Reset()

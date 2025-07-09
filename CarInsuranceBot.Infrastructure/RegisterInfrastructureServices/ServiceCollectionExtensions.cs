@@ -1,9 +1,4 @@
-﻿using Azure.Storage.Blobs;
-using CarInsuranceBot.Domain.Shared;
-using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Infrastructure.FileStorage;
-
-namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
+﻿namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureServices(

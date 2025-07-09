@@ -46,7 +46,7 @@ public class UploadDocumentCommandHandler(
         //  Download tg file to memory to compute hash
 
         await using var ms = new MemoryStream();
-        await _bot.DownloadFile(cmd.TelegramFile.FilePath, ms, ct);
+        await _bot.DownloadFile(cmd.TelegramFile.FilePath!, ms, ct);
         var hash = Convert.ToHexString(SHA256.HashData(ms.ToArray()));
 
         if (await _uow.Documents.ExistsHashAsync(user.Id, hash, ct))

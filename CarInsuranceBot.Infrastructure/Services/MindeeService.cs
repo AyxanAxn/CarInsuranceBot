@@ -1,6 +1,6 @@
 ﻿using CarInsuranceBot.Domain.Shared;
 
-namespace CarInsuranceBot.Infrastructure.OCR;
+namespace CarInsuranceBot.Infrastructure.Services;
 
 public class MindeeService : IMindeeService
 {
@@ -9,7 +9,7 @@ public class MindeeService : IMindeeService
     private readonly ILogger<MindeeService> _log;
     private readonly string? _driverRegOptions;
     private readonly string? _vehiclePassOptions;
-    private IOcrSimulationSwitch _switchSvc ;
+    private IOcrSimulationSwitch _switchSvc;
     public MindeeService(IOptions<MindeeOptions> opts,
                          IOptions<MindeeDriverRegOptions> driverRegOptions,
                          IOptions<MindeeVehiclePassportOptions> vehiclePassOptions,
@@ -62,9 +62,9 @@ public class MindeeService : IMindeeService
                        new InferenceOptionsV2(_driverRegOptions));
 
         var pred = resp.Inference.Result.Fields;
-        
+
         pred.TryGetValue("surname", out var surname);
-        pred.TryGetValue("passport_number",out var passportNumber);
+        pred.TryGetValue("passport_number", out var passportNumber);
         pred.TryGetValue("nationality", out var nationality);
         pred.TryGetValue("date_of_birth", out var dob);
         pred.TryGetValue("date_of_issue", out var doi);

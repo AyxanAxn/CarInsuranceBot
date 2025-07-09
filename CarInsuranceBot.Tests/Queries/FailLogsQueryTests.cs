@@ -1,3 +1,5 @@
+using CarInsuranceBot.Application.Queries.Admin;
+
 namespace CarInsuranceBot.Tests.Queries;
 
 public class FailLogsQueryTests : IClassFixture<InMemoryFixture>

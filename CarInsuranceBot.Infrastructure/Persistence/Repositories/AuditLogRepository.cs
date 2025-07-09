@@ -1,17 +1,8 @@
-using CarInsuranceBot.Application.Common.Interfaces;
-using CarInsuranceBot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-
 namespace CarInsuranceBot.Infrastructure.Persistence.Repositories;
 
-public class AuditLogRepository : IAuditLogRepository
+public class AuditLogRepository(ApplicationDbContext db) : IAuditLogRepository
 {
-    private readonly ApplicationDbContext _db;
-
-    public AuditLogRepository(ApplicationDbContext db)
-    {
-        _db = db;
-    }
+    private readonly ApplicationDbContext _db = db;
 
     public void Add(AuditLog auditLog)
     {

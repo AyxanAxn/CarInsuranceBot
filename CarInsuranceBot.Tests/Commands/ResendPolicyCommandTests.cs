@@ -1,5 +1,6 @@
 namespace CarInsuranceBot.Tests.Commands;
 
+using CarInsuranceBot.Application.Commands.ResendPolicy;
 using CarInsuranceBot.Application.Common.Interfaces;
 using System.IO;
 

@@ -24,7 +24,7 @@ public class GeneratePolicyCommandHandler(
     public async Task<string> Handle(GeneratePolicyCommand cmd, CancellationToken ct)
     {
         var user = await _uow.Users.GetByIdAsync(cmd.UserId, ct);
-        var vin = await _uow.ExtractedFields.FirstVinAsync(user.Id, ct);
+        string vin = await _uow.ExtractedFields.FirstVinAsync(user!.Id, ct);
 
         // Generate policy number and expiry first
         var policyNumber = Guid.NewGuid().ToString("N")[..10].ToUpper();
