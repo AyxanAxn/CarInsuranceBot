@@ -70,18 +70,11 @@ public class TelegramBotWorker(
                             var price = await mediator.Send(new QuotePriceCommand(user.Id), ct);
                             await _bot.SendMessage(chatId, price,
                                 parseMode: ParseMode.Markdown, cancellationToken: ct);
-                            user.Stage = RegistrationStage.WaitingForPayment;
-                            await uow.SaveChangesAsync(ct);
                             break;
                         }
 
                     case "yes" when user?.Stage == RegistrationStage.WaitingForPayment:
                         {
-                            if (user is null)
-                            {
-                                await _bot.SendMessage(chatId, "❌ User not found. Please start with /start", cancellationToken: ct);
-                                break;
-                            }
                             var done = await mediator.Send(new GeneratePolicyCommand(user.Id), ct);
                             await _bot.SendMessage(chatId, done, cancellationToken: ct);
                             break;
@@ -175,7 +168,7 @@ public class TelegramBotWorker(
                     var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
                     var user = await uow.Users.GetAsync(chatId, ct);
-                    bool isPassport = user?.Stage is RegistrationStage.WaitingForPassport or RegistrationStage.None;
+                    bool isPassport = user?.Stage == RegistrationStage.WaitingForPassport;
 
                     var reply = await mediator.Send(
                         new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
