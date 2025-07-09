@@ -8,7 +8,8 @@ A Telegram bot that on-boards drivers, OCR-scans vehicle docs, and issues ready-
 ---
 
 ![demo](Images/demo.gif)
-_Issuing a policy in under 30 seconds_
+
+_Issuing a policy in 40 seconds_
 
 ---
 
