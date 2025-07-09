@@ -25,7 +25,7 @@ public class FailLogsQueryTests : IClassFixture<InMemoryFixture>
         var result = await handler.Handle(new FailLogsQuery(ChatId: 12345), default);
 
         // Assert
-        result.Should().ContainEquivalentOf("Last errors");
+        result.Should().ContainEquivalentOf("Last 2 Errors");
         result.Should().ContainEquivalentOf("OCR processing failed");
         result.Should().ContainEquivalentOf("Policy generation failed");
     }

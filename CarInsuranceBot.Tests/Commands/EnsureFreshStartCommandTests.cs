@@ -20,7 +20,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var command = new EnsureFreshStartCommand(1001, "John");
 
         // Act
@@ -41,7 +42,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var user = new User
         {
             TelegramUserId = 1002,
@@ -66,7 +68,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var user = new User
         {
             TelegramUserId = 1003,
@@ -91,7 +94,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var user = new User
         {
             TelegramUserId = 1004,
@@ -121,7 +125,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var user = new User
         {
             TelegramUserId = 1005,
@@ -145,7 +150,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var user = new User
         {
             TelegramUserId = 1006,
@@ -177,7 +183,8 @@ public class EnsureFreshStartCommandTests : IClassFixture<InMemoryFixture>
     {
         // Arrange
         var uow = new UnitOfWork(_fx.Db);
-        var handler = new EnsureFreshStartHandler(uow);
+        var auditService = new Mock<IAuditService>().Object;
+        var handler = new EnsureFreshStartHandler(uow, auditService);
         var command = new EnsureFreshStartCommand(1007, null);
 
         // Act

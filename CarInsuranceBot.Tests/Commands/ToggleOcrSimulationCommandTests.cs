@@ -26,7 +26,7 @@ public class ToggleOcrSimulationCommandTests
         var result = await handler.Handle(new ToggleOcrSimulationCommand(), default);
 
         // Assert
-        result.Should().Contain("SIMULATED OCR");
+        result.Should().Contain("[SIMULATED OCR]");
         result.Should().Contain("Passport:");
         result.Should().Contain("FullName: John Doe");
         result.Should().Contain("Vehicle Registration:");

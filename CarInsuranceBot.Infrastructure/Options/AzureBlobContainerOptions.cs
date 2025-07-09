@@ -3,6 +3,7 @@
     public sealed class AzureBlobContainerOptions
     {
         public const string Section = "BlobContainer";
-        public string ContainerName { get; init; } = string.Empty;
+        public string PolicyContainerName { get; init; } = string.Empty;
+        public string FilesContainerName { get; init; } = string.Empty;
     }
 }

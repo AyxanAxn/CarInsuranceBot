@@ -29,4 +29,11 @@ public class DocumentRepository(ApplicationDbContext db) : IDocumentRepository
                         .Where(d => d.UserId == userId)
                         .ToListAsync(ct);
     }
+
+    public async Task<List<Document>> GetByUserAndStageAsync(Guid userId, RegistrationStage stage, CancellationToken ct)
+    {
+        return await _db.Documents
+            .Where(d => d.UserId == userId && d.User.Stage == stage)
+            .ToListAsync(ct);
+    }
 }

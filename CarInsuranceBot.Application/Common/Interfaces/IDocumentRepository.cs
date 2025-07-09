@@ -11,4 +11,5 @@ public interface IDocumentRepository
     Task RemoveRangeByUserStageAsync(Guid userId,
                                  RegistrationStage stage, CancellationToken ct);
     Task<List<Document>> GetByUserAsync(Guid userId, CancellationToken ct);
+    Task<List<Document>> GetByUserAndStageAsync(Guid userId, RegistrationStage stage, CancellationToken ct);
 }

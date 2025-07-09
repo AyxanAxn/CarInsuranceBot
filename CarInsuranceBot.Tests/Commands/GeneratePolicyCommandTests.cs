@@ -1,4 +1,6 @@
-﻿namespace CarInsuranceBot.Tests.Commands;
+﻿using CarInsuranceBot.Application.Common.Interfaces;
+
+namespace CarInsuranceBot.Tests.Commands;
 public class GeneratePolicyCommandTests(InMemoryFixture fx) : IClassFixture<InMemoryFixture>
 {
     private readonly ApplicationDbContext _db = fx.Db;
@@ -28,12 +30,11 @@ public class GeneratePolicyCommandTests(InMemoryFixture fx) : IClassFixture<InMe
         await _db.SaveChangesAsync();
 
         var uow = new UnitOfWork(_db);
-        var store = new Mock<IFileStore>();
-        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+        var policyStore = new Mock<IPolicyFileStore>();
+        policyStore.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("policy.pdf");
 
         var bot = new Mock<ITelegramBotClient>();
-
         var geminiService = new Mock<IGeminiService>();
         geminiService.Setup(g => g.AskAsync(
             It.IsAny<long>(),
@@ -41,7 +42,8 @@ public class GeneratePolicyCommandTests(InMemoryFixture fx) : IClassFixture<InMe
             It.IsAny<CancellationToken>()
         )).ReturnsAsync("Personalized policy text.");
 
-        var sut = new GeneratePolicyCommandHandler(uow, store.Object, bot.Object, geminiService.Object);
+        var auditService = new Mock<IAuditService>().Object;
+        var sut = new GeneratePolicyCommandHandler(uow, policyStore.Object, bot.Object, geminiService.Object, auditService);
 
         // Act
         await sut.Handle(new GeneratePolicyCommand(user.Id), default);

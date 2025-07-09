@@ -84,7 +84,7 @@ public class TelegramBotWorker(
                         {
                             await _bot.SendMessage(chatId,
                                 "💰 The price is fixed at **100 USD**. Type *yes* whenever you're ready.",
-                                parseMode: ParseMode.Markdown, cancellationToken: ct);
+                                cancellationToken: ct);
                             break;
                         }
 
@@ -116,18 +116,35 @@ public class TelegramBotWorker(
                     case "/stats" when _admins.Contains(chatId):
                         {
                             var reply = await mediator.Send(new StatsQuery(chatId), ct);
+                            _log.LogDebug("Sending admin stats message to {ChatId}: {Message}", chatId, reply);
                             await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }
                     case "/faillogs" when _admins.Contains(chatId):
                         {
                             var reply = await mediator.Send(new FailLogsQuery(chatId), ct);
+                            _log.LogDebug("Sending admin fail logs message to {ChatId}: {Message}", chatId, reply);
+                            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+                    case "/auditlogs" when _admins.Contains(chatId):
+                        {
+                            var reply = await mediator.Send(new AuditLogsQuery(chatId), ct);
+                            _log.LogDebug("Sending admin audit logs message to {ChatId}: {Message}", chatId, reply);
+                            await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                            break;
+                        }
+                    case "/adminhelp" when _admins.Contains(chatId):
+                        {
+                            var reply = await mediator.Send(new AdminHelpQuery(chatId), ct);
+                            _log.LogDebug("Sending admin help message to {ChatId}: {Message}", chatId, reply);
                             await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }
                     case var cmd when cmd.StartsWith("/simulateocr") && _admins.Contains(chatId):
                         {
                             var reply = await mediator.Send(new ToggleOcrSimulationCommand(), ct);
+                            _log.LogDebug("Sending admin simulate OCR message to {ChatId}: {Message}", chatId, reply);
                             await _bot.SendMessage(chatId, reply, parseMode: ParseMode.Markdown, cancellationToken: ct);
                             break;
                         }
@@ -168,7 +185,31 @@ public class TelegramBotWorker(
                     var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
                     var user = await uow.Users.GetAsync(chatId, ct);
-                    bool isPassport = user?.Stage == RegistrationStage.WaitingForPassport;
+                    
+                    // Determine if this is a passport or vehicle registration upload
+                    bool isPassport;
+                    if (user == null)
+                    {
+                        // New user - assume passport
+                        isPassport = true;
+                    }
+                    else if (user.Stage == RegistrationStage.WaitingForPassport)
+                    {
+                        // User is explicitly waiting for passport
+                        isPassport = true;
+                    }
+                    else if (user.Stage == RegistrationStage.WaitingForVehicle)
+                    {
+                        // User is waiting for vehicle registration
+                        isPassport = false;
+                    }
+                    else
+                    {
+                        // For any other stage, check if they already have a passport
+                        var documents = await uow.Documents.GetByUserAsync(user.Id, ct);
+                        var hasPassport = documents.Any(d => d.Type == DocumentType.Passport);
+                        isPassport = !hasPassport;
+                    }
 
                     var reply = await mediator.Send(
                         new UploadDocumentCommand(chatId, tgFile, isPassport), ct);

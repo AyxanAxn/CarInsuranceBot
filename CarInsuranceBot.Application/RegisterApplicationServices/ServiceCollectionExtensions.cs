@@ -2,6 +2,7 @@
 using FluentValidation;
 using System.Reflection;
 using MediatR;
+using CarInsuranceBot.Application.Common.Interfaces;
 
 namespace CarInsuranceBot.Application.RegisterApplicationServices
 {

@@ -1,5 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using CarInsuranceBot.Domain.Shared;
+using CarInsuranceBot.Application.Common.Interfaces;
+using CarInsuranceBot.Infrastructure.FileStorage;
 
 namespace CarInsuranceBot.Infrastructure.RegisterInfrastructureServices;
 public static class ServiceCollectionExtensions
@@ -42,10 +44,12 @@ public static class ServiceCollectionExtensions
             return new TelegramBotClient(token);
         });
 
-        services.AddSingleton<IFileStore, BlobFileStore>();
+        services.AddScoped<IFileStore, BlobFileStore>(); // for user docs
+        services.AddScoped<IPolicyFileStore, PolicyBlobFileStore>(); // for policies
         services.AddScoped<IGeminiService, GeminiService>();
         services.AddScoped<IMindeeService, MindeeService>();
         services.AddSingleton<IOcrSimulationSwitch, OcrSimulationSwitch>();
+        services.AddScoped<IAuditService, AuditService>();
 
         // 4. Persistence
         services.AddScoped<IUnitOfWork, UnitOfWork>();

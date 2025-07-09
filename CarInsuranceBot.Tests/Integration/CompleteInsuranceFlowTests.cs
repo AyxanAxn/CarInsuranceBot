@@ -15,11 +15,12 @@ public class CompleteInsuranceFlowTests : IClassFixture<InMemoryFixture>
         var ocr = new Mock<IMindeeService>();
         var bot = new Mock<ITelegramBotClient>();
         var geminiService = new Mock<IGeminiService>();
+        var policyStore = new Mock<IPolicyFileStore>();
 
         // Setup file storage
         store.Setup(s => s.SaveAsync(It.IsAny<TelegramFile>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("stored_path");
-        store.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+        policyStore.Setup(s => s.SavePdf(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
              .ReturnsAsync("policies/test_policy.pdf");
 
         // Setup bot responses
@@ -77,7 +78,8 @@ public class CompleteInsuranceFlowTests : IClassFixture<InMemoryFixture>
             user!.TelegramUserId.Should().Be(12345);
 
             // Act 2: Upload passport - Use mock UnitOfWork to prevent duplicates
-            var uploadHandler = new UploadDocumentCommandHandler(uowMock.Object, store.Object, mediator.Object, ocr.Object, bot.Object);
+            var auditService = new Mock<IAuditService>().Object;
+            var uploadHandler = new UploadDocumentCommandHandler(uowMock.Object, store.Object, mediator.Object, ocr.Object, bot.Object, auditService);
             var uploadResult = await uploadHandler.Handle(
                 new UploadDocumentCommand(12345, new TelegramFile { FileId = "passport", FilePath = "test_path" }, true),
                 default);
@@ -102,7 +104,7 @@ public class CompleteInsuranceFlowTests : IClassFixture<InMemoryFixture>
             priceResult.ShouldBePriceQuote();
 
             // Act 5: Generate policy - Use real UnitOfWork to save policy to database
-            var policyHandler = new GeneratePolicyCommandHandler(realUow, store.Object, bot.Object, geminiService.Object);
+            var policyHandler = new GeneratePolicyCommandHandler(realUow, policyStore.Object, bot.Object, geminiService.Object, auditService);
             var policyResult = await policyHandler.Handle(new GeneratePolicyCommand(user.Id), default);
 
             // Assert 5: Policy generated

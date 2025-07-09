@@ -10,6 +10,7 @@ public interface IUnitOfWork
     IPolicyRepository Policies { get; }
     IConversationRepository Conversations { get; }
     IErrorLogRepository ErrorLogs { get; }
+    IAuditLogRepository AuditLogs { get; }
 
     IQueryable<ErrorLog> Errors { get; }
     IQueryable<User> UsersQuery { get; }

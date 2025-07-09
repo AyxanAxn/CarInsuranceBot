@@ -6,7 +6,12 @@ namespace CarInsuranceBot.Application.Commands.Cancel;
 public class CancelCommandHandler : IRequestHandler<CancelCommand, string>
 {
     private readonly IUnitOfWork _uow;
-    public CancelCommandHandler(IUnitOfWork uow) => _uow = uow;
+    private readonly IFileStore _fileStore;
+    public CancelCommandHandler(IUnitOfWork uow, IFileStore fileStore)
+    {
+        _uow = uow;
+        _fileStore = fileStore;
+    }
 
     public async Task<string> Handle(CancelCommand cmd, CancellationToken ct)
     {
@@ -16,12 +21,24 @@ public class CancelCommandHandler : IRequestHandler<CancelCommand, string>
             user.Stage = RegistrationStage.None;
             user.UploadAttempts = 0;
 
-            // Remove documents for all in-progress stages
-            await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForPassport, ct);
-            await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForVehicle, ct);
-            await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForReview, ct);
-            await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.ReadyToPay, ct);
-            await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, RegistrationStage.WaitingForPayment, ct);
+            var stages = new[]
+            {
+                RegistrationStage.WaitingForPassport,
+                RegistrationStage.WaitingForVehicle,
+                RegistrationStage.WaitingForReview,
+                RegistrationStage.ReadyToPay,
+                RegistrationStage.WaitingForPayment
+            };
+
+            foreach (var stage in stages)
+            {
+                var docsForStage = await _uow.Documents.GetByUserAndStageAsync(user.Id, stage, ct);
+                foreach (var doc in docsForStage)
+                {
+                    await _fileStore.DeleteAsync(doc.Path, ct);
+                }
+                await _uow.Documents.RemoveRangeByUserStageAsync(user.Id, stage, ct);
+            }
 
             // Remove extracted fields (if you have a similar method)
             await _uow.ExtractedFields.RemoveByUserAsync(user.Id, ct);

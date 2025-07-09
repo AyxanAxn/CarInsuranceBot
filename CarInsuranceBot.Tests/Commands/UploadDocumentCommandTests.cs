@@ -32,7 +32,7 @@ public class UploadDocumentCommandTests : IClassFixture<InMemoryFixture>
         ocr.Setup(o => o.ExtractAsync(It.IsAny<Stream>(), It.IsAny<DocumentType>(), It.IsAny<CancellationToken>()))
            .ReturnsAsync(new ExtractedDocument(DocumentType.Passport) { Values = new Dictionary<string, string>() });
 
-        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object);
+        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object, new Mock<IAuditService>().Object);
 
         var cmd = new UploadDocumentCommand(22, new TelegramFile { FileId = "x", FilePath = "test_path" }, true);
 
@@ -72,7 +72,7 @@ public class UploadDocumentCommandTests : IClassFixture<InMemoryFixture>
         ocr.Setup(o => o.ExtractAsync(It.IsAny<Stream>(), It.IsAny<DocumentType>(), It.IsAny<CancellationToken>()))
            .ReturnsAsync(new ExtractedDocument(DocumentType.VehicleRegistration) { Values = new Dictionary<string, string>() });
 
-        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object);
+        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object, new Mock<IAuditService>().Object);
 
         var cmd = new UploadDocumentCommand(33, new TelegramFile { FileId = "y", FilePath = "test_path" }, false);
 
@@ -95,7 +95,7 @@ public class UploadDocumentCommandTests : IClassFixture<InMemoryFixture>
         var ocr = new Mock<IMindeeService>();
         var bot = new Mock<ITelegramBotClient>();
 
-        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object);
+        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object, new Mock<IAuditService>().Object);
 
         var cmd = new UploadDocumentCommand(999999, new TelegramFile { FileId = "z", FilePath = "test_path" }, true);
 
@@ -119,7 +119,7 @@ public class UploadDocumentCommandTests : IClassFixture<InMemoryFixture>
         var ocr = new Mock<IMindeeService>();
         var bot = new Mock<ITelegramBotClient>();
 
-        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object);
+        var sut = new UploadDocumentCommandHandler(uow, store.Object, mediator.Object, ocr.Object, bot.Object, new Mock<IAuditService>().Object);
 
         var cmd = new UploadDocumentCommand(44, new TelegramFile { FileId = "w", FilePath = "test_path" }, true);
 
@@ -161,7 +161,7 @@ public class UploadDocumentCommandTests : IClassFixture<InMemoryFixture>
         uowMock.Setup(u => u.ExtractedFields).Returns(uow.ExtractedFields);
         uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var sut = new UploadDocumentCommandHandler(uowMock.Object, store.Object, mediator.Object, ocr.Object, bot.Object);
+        var sut = new UploadDocumentCommandHandler(uowMock.Object, store.Object, mediator.Object, ocr.Object, bot.Object, new Mock<IAuditService>().Object);
 
         var cmd = new UploadDocumentCommand(55, new TelegramFile { FileId = "v", FilePath = "test_path" }, true);
 

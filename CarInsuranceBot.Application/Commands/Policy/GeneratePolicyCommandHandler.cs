@@ -9,12 +9,17 @@ using CarInsuranceBot.Application.AI;
 
 namespace CarInsuranceBot.Application.Commands.Policy;
 public class GeneratePolicyCommandHandler(
-    IUnitOfWork uow, IFileStore store, ITelegramBotClient bot, IGeminiService geminiService) : IRequestHandler<GeneratePolicyCommand, string>
+    IUnitOfWork uow, 
+    IPolicyFileStore policyFileStore, // use the specific interface
+    ITelegramBotClient bot, 
+    IGeminiService geminiService,
+    IAuditService auditService) : IRequestHandler<GeneratePolicyCommand, string>
 {
     private readonly IUnitOfWork _uow = uow;
-    private readonly IFileStore _store = store;
+    private readonly IPolicyFileStore _policyFileStore = policyFileStore;
     private readonly ITelegramBotClient _bot = bot;
     private readonly IGeminiService _geminiService = geminiService;
+    private readonly IAuditService _auditService = auditService;
 
     public async Task<string> Handle(GeneratePolicyCommand cmd, CancellationToken ct)
     {
@@ -39,6 +44,8 @@ public class GeneratePolicyCommandHandler(
             - A call to action if they have questions or need support.
 
             Keep it under 150 words and clearly structured for easy reading in a Telegram message.
+            My company name is Aykhan Inshurance. Email is Inshurance@aykhanInshurance.comeWithCar.
+            Location is somewhere in the east 
         ";
         // Get personalized text from Gemini
         string personalizedText = await _geminiService.AskAsync(user.TelegramUserId, prompt, ct);
@@ -52,7 +59,7 @@ public class GeneratePolicyCommandHandler(
             .Build();
 
         // Save PDF to file system
-        var path = await _store.SavePdf(pdfBytes, $"{user.TelegramUserId}_policy.pdf");
+        var path = await _policyFileStore.SavePdf(pdfBytes, $"{user.TelegramUserId}_policy.pdf");
 
         // Build and save the policy entity
         var policy = new PolicyBuilder()
@@ -68,6 +75,11 @@ public class GeneratePolicyCommandHandler(
         _uow.Policies.Add(policy);
         user.Stage = RegistrationStage.Finished;
         await _uow.SaveChangesAsync(ct);
+
+        // Audit log the policy creation and user completion
+        await _auditService.LogCreateAsync(policy, ct);
+        await _auditService.LogActionAsync("User", user.Id, "POLICY_GENERATED", 
+            $"Policy {policyNumber} generated for user {user.FullName}. VIN: {vin}, Expires: {expiry:yyyy-MM-dd}", ct);
 
         // Send PDF to user
         await using var ms = new MemoryStream(pdfBytes);

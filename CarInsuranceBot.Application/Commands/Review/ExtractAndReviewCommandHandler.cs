@@ -33,7 +33,7 @@ public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr,
         var passportFields = allExtractedFields.Where(f => f.Document.Type == DocumentType.Passport).ToList();
         var vehicleFields = allExtractedFields.Where(f => f.Document.Type == DocumentType.VehicleRegistration).ToList();
 
-        if (passportFields.Any())
+        if (passportFields.Count != 0)
         {
             sb.AppendLine("*📄 Passport Data:*");
             foreach (var field in passportFields)
@@ -41,7 +41,7 @@ public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr,
             sb.AppendLine();
         }
 
-        if (vehicleFields.Any())
+        if (vehicleFields.Count != 0)
         {
             sb.AppendLine("*🚗 Vehicle Registration Data:*");
             foreach (var field in vehicleFields)
@@ -51,16 +51,5 @@ public class ExtractAndReviewCommandHandler(IUnitOfWork uow, IMindeeService ocr,
 
         sb.Append("Type *yes* to continue or *retry* to upload new photos.");
         return sb.ToString();
-    }
-
-    private static string GetBlobName(string pathOrUrl)
-    {
-        if (!pathOrUrl.Contains('/'))
-            return pathOrUrl;
-
-        if (Uri.TryCreate(pathOrUrl, UriKind.Absolute, out var uri))
-            return uri.Segments.Last();
-
-        return pathOrUrl.Split('/').Last();
     }
 }

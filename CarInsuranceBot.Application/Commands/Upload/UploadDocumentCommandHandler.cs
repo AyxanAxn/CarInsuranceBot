@@ -1,4 +1,5 @@
 ﻿using CarInsuranceBot.Application.Common.Interfaces;
+using CarInsuranceBot.Application.Common.Utils;
 using CarInsuranceBot.Application.Commands.Review;
 using CarInsuranceBot.Domain.Entities.Builders;
 using CarInsuranceBot.Domain.Entities;
@@ -15,7 +16,8 @@ public class UploadDocumentCommandHandler(
     IFileStore store,
     IMediator mediator,
     IMindeeService ocr,
-    ITelegramBotClient bot) : IRequestHandler<UploadDocumentCommand, string>
+    ITelegramBotClient bot,
+    IAuditService auditService) : IRequestHandler<UploadDocumentCommand, string>
 {
     private const int maxAttempts = 5;
 
@@ -24,6 +26,7 @@ public class UploadDocumentCommandHandler(
     private readonly IMediator _mediator = mediator;
     private readonly IMindeeService _ocr = ocr;
     private readonly ITelegramBotClient _bot = bot;
+    private readonly IAuditService _auditService = auditService;
 
     // --------------------------------------------------------------
     public async Task<string> Handle(UploadDocumentCommand cmd, CancellationToken ct)
@@ -35,6 +38,8 @@ public class UploadDocumentCommandHandler(
         if (user.UploadAttempts > maxAttempts)
         {
             await _uow.SaveChangesAsync(ct);
+            await _auditService.LogActionAsync("User", user.Id, "MAX_ATTEMPTS_REACHED", 
+                $"User reached {maxAttempts} upload attempts", ct);
             return $"❌ You reached {maxAttempts} upload attempts. Type /cancel to restart.";
         }
 
@@ -47,6 +52,8 @@ public class UploadDocumentCommandHandler(
         if (await _uow.Documents.ExistsHashAsync(user.Id, hash, ct))
         {
             await _uow.SaveChangesAsync(ct); // persist attempts increment
+            await _auditService.LogActionAsync("User", user.Id, "DUPLICATE_UPLOAD", 
+                $"User attempted to upload duplicate document with hash: {hash}", ct);
             return "⚠️ That looks like a duplicate of an earlier photo. Please send a different image.";
         }
 
@@ -66,6 +73,11 @@ public class UploadDocumentCommandHandler(
         _uow.Documents.Add(doc);
         await _uow.SaveChangesAsync(ct);
 
+        // Audit log the document creation
+        await _auditService.LogCreateAsync(doc, ct);
+        await _auditService.LogActionAsync("Document", doc.Id, "UPLOAD", 
+            $"Document uploaded. Type: {docType}, Hash: {hash}, Path: {path}", ct);
+
         ms.Position = 0;
         var extracted = await _ocr.ExtractAsync(ms, docType, ct);
 
@@ -77,6 +89,7 @@ public class UploadDocumentCommandHandler(
                 FieldValue = v,
             });
 
+        var originalStage = user.Stage;
         if (cmd.IsPassport)
             user.Stage = RegistrationStage.WaitingForVehicle;
         else
@@ -87,11 +100,15 @@ public class UploadDocumentCommandHandler(
 
         await _uow.SaveChangesAsync(ct);
 
+        // Audit log the stage transition
+        await _auditService.LogActionAsync("User", user.Id, "STAGE_TRANSITION", 
+            $"Stage changed: {originalStage} -> {user.Stage} after {docType} upload", ct);
+
         if (cmd.IsPassport)
         {
             var sb = new StringBuilder("✅ Passport received!\n\n*Extracted Data:*\n");
             foreach (var (k, v) in extracted.Values)
-                sb.AppendLine($"{k}: {v}");
+                sb.AppendLine($"{MarkdownHelper.SafeBold(k)}: {MarkdownHelper.SafeCodeBlock(v)}");
             sb.AppendLine("\nNow please send a photo of the vehicle registration certificate.");
             return sb.ToString();
         }

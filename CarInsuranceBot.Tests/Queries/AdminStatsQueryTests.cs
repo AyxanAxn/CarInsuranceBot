@@ -22,7 +22,7 @@ public class AdminStatsQueryTests(InMemoryFixture fx) : IClassFixture<InMemoryFi
         var handler = new StatsQueryHandler(new UnitOfWork(_db));
         var txt = await handler.Handle(new StatsQuery(ChatId: 12345), default);
 
-        txt.Should().Contain("Issued policies: *1*");
-        txt.Should().Contain("Registered users: *1*");
+        txt.Should().Contain("Issued: *1*");
+        txt.Should().Contain("Total registered: *1*");
     }
 }
