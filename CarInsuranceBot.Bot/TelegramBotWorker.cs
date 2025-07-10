@@ -1,4 +1,6 @@
-﻿namespace CarInsuranceBot.Bot;
+﻿using CarInsuranceBot.Application.Common.Utils;
+
+namespace CarInsuranceBot.Bot;
 
 public sealed class TelegramBotWorker(
     ITelegramBotClient bot,
@@ -138,17 +140,18 @@ public sealed class TelegramBotWorker(
                 #region Fallback (AI Chat)
                 default:
                     // If not a recognized command, send to AI chat handler
-                    await Reply(await SafeChatAsync(mediator, chatId, text, ct));
+                    var ai = await SafeChatAsync(mediator, chatId, text, ct);
+                    await Reply(CarInsuranceBot.Application.Common.Utils.MarkdownHelper.EscapeMarkdown(ai));
                     break;
                     #endregion  Fallback (AI Chat)
             }
 
             // Helper for sending replies with consistent markup and keyboard
             async Task Reply(string message) =>
-                await _bot.SendMessage(chatId, message,
-                    parseMode: ParseMode.Markdown,
-                    replyMarkup: MainMenu,
-                    cancellationToken: ct);
+            await _bot.SendMessage(chatId, MarkdownHelper.EscapeMarkdown(message),
+                parseMode: ParseMode.MarkdownV2,
+                replyMarkup: MainMenu,
+                cancellationToken: ct);
         }
         catch (Exception ex) { await LogAndAcknowledgeError(update, ex, ct); }
     }
@@ -177,8 +180,8 @@ public sealed class TelegramBotWorker(
 
             var reply = await mediator.Send(new UploadDocumentCommand(chatId, tgFile, isPassport), ct);
 
-            await _bot.SendMessage(chatId, reply,
-                parseMode: ParseMode.Markdown,
+            await _bot.SendMessage(chatId, MarkdownHelper.EscapeMarkdown(reply),
+                parseMode: ParseMode.MarkdownV2,
                 cancellationToken: ct);
         }
         catch (Exception ex) { await LogAndAcknowledgeError(update, ex, ct); }

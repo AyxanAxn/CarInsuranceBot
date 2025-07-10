@@ -10,14 +10,14 @@ public static class MarkdownHelper
         if (string.IsNullOrEmpty(text))
             return text;
 
-        // Characters that need to be escaped in Markdown
+        // Escape backslash first!
+        text = text.Replace("\\", "\\\\");
+        // Then escape all other MarkdownV2 special characters
         var charsToEscape = new[] { "_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!" };
-        
         foreach (var c in charsToEscape)
         {
             text = text.Replace(c, "\\" + c);
         }
-        
         return text;
     }
 
